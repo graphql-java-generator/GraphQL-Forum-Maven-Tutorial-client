@@ -1,22 +1,22 @@
 # A sample for the GraphQL Maven plugin (client side)
 
-This Tutorial describes how-to create a GraphQL client application, with the [graphql-maven-plugin](https://github.com/graphql-java-generator/graphql-maven-plugin-project)
+This Tutorial describes how-to create a GraphQL client application, with the [graphql-maven-plugin](https://github.com/graphql-java-generator/graphql-maven-plugin-project) and the [graphql Gradle plugin](https://github.com/graphql-java-generator/graphql-gradle-plugin-project).
 
 
-The GraphQL Maven plugin helps both on the server and on the client side. You'll find the tutorial for the server side [on this page](../GraphQL-Forum-Maven-Sample-server)
+The GraphQL plugin helps both on the server and on the client side. You'll find the tutorials for the server side on the [Maven server tutorial](https://github.com/graphql-java-generator/GraphQL-Forum-Maven-Tutorial-server) and on the [Gradle server tutorial](https://github.com/graphql-java-generator/GraphQL-Forum-Gradle-Tutorial-server)
 
 
 ## Schema first
 
 This plugin allows a schema first approach.
 
-This approach is the best approach for APIs: it allows to precisely control the Interface Contract. This contract is the heart of all interface systems.
+This approach is the best approach for APIs: it allows to precisely control the Interface Contract. This contract is the heart of all connected systems.
 
 This tutorial won't describe how to create a GraphQL schema. There are plenty of resources on the net for that, starting with the [official GraphQL site](https://graphql.org/).
 
 ## The Forum GraphQL schema
 
-This sample is based on the Forum schema, [available here](https://github.com/graphql-java-generator/GraphQL-Forum-Maven-Sample/blob/master/GraphQL-Forum-Maven-Sample-client/src/main/resources/forum.graphqls)
+This sample is based on the Forum schema, [available here](https://github.com/graphql-java-generator/GraphQL-Forum-Maven-Tutorial-client/blob/master/src/main/resources/forum.graphqls)
 
 This schema contains:
 
@@ -36,11 +36,13 @@ This schema contains:
 
 This schema is stored in the _/src/main/resources/_ project folder for convenience. 
 
-It could be also be used in another folder, like _/src/main/graphql/_. In this case, the schema is not stored in the packaged jar (which is Ok), and you have to use the plugin _schemaFileFolder_ parameter, to indicate where to find this schema.
+It could be also be used in another folder, like _/src/main/graphql/_ . In this case, the schema is not stored in the packaged jar (which is Ok for the Client mode), and you have to use the plugin _schemaFileFolder_ parameter, to indicate where to find this schema.
 
-## The pom file
+## The pom.xml and build.gradle files
 
-As a maven plugin, you have to add the plugin the build section of your pom (the full pom [is available here](https://github.com/graphql-java-generator/GraphQL-Forum-Maven-Sample/blob/master/GraphQL-Forum-Maven-Sample-client/pom.xml)):
+As a Maven or a Gradle plugin, you have to add the plugin in the build:
+* For Maven, you add it in the build section of your pom (here is the [full pom](https://github.com/graphql-java-generator/GraphQL-Forum-Maven-Sample/blob/master/GraphQL-Forum-Maven-Sample-client/pom.xml)):
+* For Gradle, you declare the plugin, then configure it (here is the full [build.gradle](https://github.com/graphql-java-generator/GraphQL-Forum-Gradle-Tutorial-client/blob/master/build.gradle))
   
 
 ```XML
@@ -96,6 +98,9 @@ As a maven plugin, you have to add the plugin the build section of your pom (the
 			<version>${graphql-maven-plugin.version}</version>
 		</dependency>
 	</dependencies>
+```
+```Groovy
+qdqsd
 ```
 
 The compiler must be set to version 1.8 (or higher).
