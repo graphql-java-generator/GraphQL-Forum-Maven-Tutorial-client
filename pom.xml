@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+
+
+	<groupId>com.graphql-java-generator</groupId>
+	<artifactId>GraphQL-Forum-Maven-Sample-client</artifactId>
+	<version>local-SNAPSHOT</version>
+
+	<url>https://github.com/graphql-java-generator/GraphQL-Forum-Maven-Sample-client</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<!-- The graphql plugin's version, used in this tutorial -->
+		<graphql-maven-plugin.version>1.8.1</graphql-maven-plugin.version>
+	</properties>
+
+
+	<build>
+
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+					<release>8</release>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.graphql-java-generator</groupId>
+				<artifactId>graphql-maven-plugin</artifactId>
+				<version>${graphql-maven-plugin.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>graphql</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<mode>client</mode>
+					<packageName>org.forum.client</packageName>
+					<customScalars>
+						<customScalar>
+							<graphQLTypeName>Date</graphQLTypeName>
+							<javaType>java.util.Date</javaType>
+							<graphQLScalarTypeStaticField>com.graphql_java_generator.customscalars.GraphQLScalarTypeDate.Date</graphQLScalarTypeStaticField>
+						</customScalar>
+					</customScalars>
+					<!-- The parameters below change the 1.x default behavior to respect the future 2.x behavior -->
+					<copyRuntimeSources>false</copyRuntimeSources>
+					<generateDeprecatedRequestResponse>false</generateDeprecatedRequestResponse>
+					<separateUtilityClasses>true</separateUtilityClasses>
+				</configuration>
+			</plugin>
+			<plugin>
+				<!-- This helps by adding the generated source in the build path of your IDE -->
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>3.0.0</version>
+				<executions>
+					<execution>
+						<id>add-source</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${project.build.directory}/generated-sources/graphql-maven-plugin</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<!-- Dependencies for GraphQL -->
+		<dependency>
+			<groupId>com.graphql-java-generator</groupId>
+			<artifactId>graphql-java-runtime</artifactId>
+			<version>${graphql-maven-plugin.version}</version>
+		</dependency>
+
+		<!-- A logging implementation -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j-impl</artifactId>
+			<version>2.12.1</version>
+		</dependency>
+	</dependencies>
+
+
+</project>
