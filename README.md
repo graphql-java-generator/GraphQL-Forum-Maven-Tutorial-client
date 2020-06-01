@@ -174,7 +174,7 @@ Don't forget to execute (or re-execute) a full build when you change the plugin 
 * (For Maven) Execute a _mvn clean compile_
 * (for Gradle) Execute a _gradlew clean build_
 
-This will generate the client code in the _packageName_ package (or in the _com.generated.graphql_ if this parameter is not defined)
+This will generate the client code in the _packageName_ package (or in the _com.generated.graphql_ if this parameter is not defined).
 
 The code is generated in the :
 * (for Maven) _/target/generated-sources/graphql-maven-plugin_ folder. And thanks to the _build-helper-maven-plugin_, it should automatically be added as a source folder to your favorite IDE.
