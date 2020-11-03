@@ -14,7 +14,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- The graphql plugin's version, used in this tutorial -->
-		<graphql-maven-plugin.version>1.10</graphql-maven-plugin.version>
+		<graphql-maven-plugin.version>1.11</graphql-maven-plugin.version>
 	</properties>
 
 
@@ -38,12 +38,14 @@
 				<executions>
 					<execution>
 						<goals>
-							<goal>graphql</goal>
+							<goal>generateClientCode</goal>
 						</goals>
 					</execution>
 				</executions>
 				<configuration>
-					<mode>client</mode>
+					<!-- Let's configure the GraphQL Gradle Plugin: -->
+					<!-- All available parameters are described here: -->
+					<!-- https://graphql-maven-plugin-project.graphql-java-generator.com/graphql-maven-plugin/generateClientCode-mojo.html -->
 					<packageName>org.forum.client</packageName>
 					<customScalars>
 						<customScalar>
@@ -52,7 +54,7 @@
 							<graphQLScalarTypeStaticField>com.graphql_java_generator.customscalars.GraphQLScalarTypeDate.Date</graphQLScalarTypeStaticField>
 						</customScalar>
 					</customScalars>
-					<!-- The parameters below change the 1.x default behavior to respect the future 2.x behavior -->
+					<!-- The parameters below change the 1.x default behavior. They are set to respect the behavior of the future 2.x versions -->
 					<copyRuntimeSources>false</copyRuntimeSources>
 					<generateDeprecatedRequestResponse>false</generateDeprecatedRequestResponse>
 					<separateUtilityClasses>true</separateUtilityClasses>
