@@ -17,7 +17,7 @@ This tutorial won't describe how to create a GraphQL schema. There are plenty of
 
 ## The Forum GraphQL schema
 
-This sample is based on the Forum schema, [available here](https://github.com/graphql-java-generator/GraphQL-Forum-Maven-Tutorial-client/blob/master/src/main/resources/forum.graphqls)
+This sample is based on the Forum GraphQL schema, [available here](https://github.com/graphql-java-generator/GraphQL-Forum-Maven-Tutorial-client/blob/master/src/main/resources/forum.graphqls)
 
 This schema contains:
 
@@ -42,13 +42,16 @@ It could be also be used in another folder, like _/src/main/graphql/_ . In this 
 ## The pom.xml and build.gradle files
 
 As a Maven or a Gradle plugin, you have to add the plugin in the build:
-* For Maven, you add it in the build section of your pom (here is the [full pom](https://github.com/graphql-java-generator/GraphQL-Forum-Maven-Sample/blob/master/GraphQL-Forum-Maven-Sample-client/pom.xml)):
+* For Maven, you add it in the build section of your pom (here is the [full pom](https://github.com/graphql-java-generator/GraphQL-Forum-Maven-Tutorial-client/blob/master/pom.xml)):
 * For Gradle, you declare the plugin, then configure it (here is the full [build.gradle](https://github.com/graphql-java-generator/GraphQL-Forum-Gradle-Tutorial-client/blob/master/build.gradle))
   
 
 Let's first have a look at the Maven **pom.xml** file:
 
 ```XML
+	<properties>
+		<graphql-maven-plugin.version>1.14</graphql-maven-plugin.version>
+	</properties>
 	
 	<build>
 ...
@@ -96,7 +99,7 @@ Then the Gradle **build.gradle** file:
 
 ```Groovy
 plugins {
-	id "com.graphql_java_generator.graphql-gradle-plugin" version "1.8.1"
+	id "com.graphql_java_generator.graphql-gradle-plugin" version "1.14"
 	id 'java'
 }
 
@@ -107,7 +110,7 @@ repositories {
 
 dependencies {
 	// The graphql-java-runtime module agregates all dependencies for the generated code, including the plugin runtime
-	implementation "com.graphql-java-generator:graphql-java-runtime:1.8.1"
+	implementation "com.graphql-java-generator:graphql-java-runtime:1.14"
 	implementation "org.apache.logging.log4j:log4j-slf4j-impl:2.12.1"
 }
 
@@ -147,7 +150,7 @@ In this plugin declaration:
     * If you set it to _false_, or don't define it, then all classes are generated in the _packageName_ package 
 * And we declare the _Date_ scalar implementation. 
     * It is mandatory to give the implementation for each custom scalar defined in the GraphQL schema.
-    * You'll find the relevant documentation on the [Plugin custom scalar doc page](https://graphql-maven-plugin-project.graphql-java-generator.com/customscalars.html)  
+    * You'll find the relevant documentation on the [Plugin custom scalar doc page](https://github.com/graphql-java-generator/graphql-maven-plugin-project/wiki/usage_customscalars)
 
 The generated source is added to the IDE sources, thanks to:
 * (for Maven) The _build-helper-maven-plugin_, so that the generated source is automatically added to the build path of your IDE.
@@ -189,7 +192,7 @@ To sum up, you'll use:
 
 ## Choice 1: Partial or Full requests 
 
-These are concepts proper to the plugin. You'll find more info about Full and Partial request on [this plugins's doc page](https://graphql-maven-plugin-project.graphql-java-generator.com/client.html).
+These are concepts proper to the plugin. You'll find more info about Full and Partial request on [this plugins's doc page](https://github.com/graphql-java-generator/graphql-maven-plugin-project/wiki/client_exec_graphql_requests).
 
 So let's explain that:
 * A __Partial__ request is the execution of only one query or mutation at a time. It's easier to use, as the generated method directly returns the POJO instance for the returned type, or throws a [GraphQLRequestExecutionException](https://graphql-maven-plugin-project.graphql-java-generator.com/graphql-java-runtime/apidocs/com/graphql_java_generator/exception/GraphQLRequestExecutionException.html) when an error occurs.
@@ -389,7 +392,7 @@ As there is no provided value for the _memberName_ bind parameter, this paramete
 
 Please note that:
 * If a bind parameter is set for a GraphQL array/list, you'll have to provide a java.util.List<YourObject> instance, where YourObject is the type defined in the GraphQL schema.  
-* The _since_ parameter is a custom scalar of type _Date_ . In the pom.xml or the build.gradle file, the custom scalar is declared as being a _java.util.Date_ so the value in your code is a standard java.util.Date. The custom scalar implementation provided in the pom.xml or the build.gradle file takes care of properly format the code (when executing the request) and read the value (when reading the server response). More information on that in the [custom scalar plugin's doc page](https://graphql-maven-plugin-project.graphql-java-generator.com/customscalars.html).
+* The _since_ parameter is a custom scalar of type _Date_ . In the pom.xml or the build.gradle file, the custom scalar is declared as being a _java.util.Date_ so the value in your code is a standard java.util.Date. The custom scalar implementation provided in the pom.xml or the build.gradle file takes care of properly format the code (when executing the request) and read the value (when reading the server response). More information on that in the [custom scalar plugin's doc page](https://github.com/graphql-java-generator/graphql-maven-plugin-project/wiki/usage_customscalars).
 
 
 ## Full requests
@@ -486,6 +489,8 @@ import org.forum.client.QueryType;
 ```
 
 
-## To be continued... (Subscriptions)
+## Subscriptions
 
-Subscription are documented on the [GraphQL plugin's web site](https://graphql-maven-plugin-project.graphql-java-generator.com/client_subscription.html) 
+The Subscriptions works in the same way. 
+
+You'll find the relevant document on the [GraphQL plugin's wiki](https://github.com/graphql-java-generator/graphql-maven-plugin-project/wiki/client_subscription) 
