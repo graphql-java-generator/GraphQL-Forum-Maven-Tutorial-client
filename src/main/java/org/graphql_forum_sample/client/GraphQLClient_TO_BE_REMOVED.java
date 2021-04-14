@@ -6,6 +6,8 @@ package org.graphql_forum_sample.client;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+
 import org.forum.client.Board;
 import org.forum.client.MutationType;
 import org.forum.client.Post;
@@ -18,16 +20,29 @@ import org.forum.client.util.MutationTypeExecutor;
 import org.forum.client.util.QueryTypeExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 
 import com.graphql_java_generator.exception.GraphQLRequestExecutionException;
 import com.graphql_java_generator.exception.GraphQLRequestPreparationException;
 
-public class GraphQLClient {
+//@Component // This marks this class as being a Spring Bean
+public class GraphQLClient_TO_BE_REMOVED implements CommandLineRunner {
 
 	/** The logger for this class */
-	static protected Logger logger = LoggerFactory.getLogger(GraphQLClient.class);
+	static protected Logger logger = LoggerFactory.getLogger(GraphQLClient_TO_BE_REMOVED.class);
 
+	/**
+	 * The executor, that allows to execute GraphQL queries. The class name is the one defined in the GraphQL schema,
+	 * with the suffix Executor.<BR/>
+	 * It is automagically loaded by Spring, from the Beans it has discovered. An error is thrown if no matching bean is
+	 * found, of if more than one matching bean is found
+	 */
+	@Autowired
 	QueryTypeExecutor queryExecutor;
+
+	/** The executor, that allows to execute GraphQL mutations */
+	@Autowired
 	MutationTypeExecutor mutationExecutor;
 
 	// Partial requests
@@ -39,10 +54,13 @@ public class GraphQLClient {
 	GraphQLRequest boardsFullRequest;
 
 	/**
-	 * This constructor prepares the GraphQL requests, so that they can be used by the {@link #execPartialRequests()}
-	 * method
+	 * This method is executed by Spring, once the autowired field are set, and before the run method is called
+	 * 
+	 * @throws GraphQLRequestPreparationException
 	 */
-	public GraphQLClient() throws GraphQLRequestPreparationException {
+	@PostConstruct
+	public void init() throws GraphQLRequestPreparationException {
+		logger.info("Starting preparation");
 
 		// Creation of the query executor, for this GraphQL endpoint
 		logger.info("Connecting to GraphQL endpoint");
@@ -63,6 +81,14 @@ public class GraphQLClient {
 		// Preparation of the GraphQL Full requests, that will be used in the execFullRequests() method
 		boardsFullRequest = mutationExecutor
 				.getGraphQLRequest("mutation {createPost(post: &postInput) { id date author{id name} title content}}");
+
+		logger.info("Preparation finished");
+	}
+
+	@Override
+	public void run(String... args) throws GraphQLRequestPreparationException {
+		logger.info("Starting execution");
+		logger.info("Normal end of execution");
 	}
 
 	public void execPartialRequests() throws GraphQLRequestExecutionException {
@@ -126,4 +152,5 @@ public class GraphQLClient {
 		logger.trace("Read boards are {}", boards);
 
 	}
+
 }
