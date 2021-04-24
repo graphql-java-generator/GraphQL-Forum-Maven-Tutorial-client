@@ -13,8 +13,8 @@
 		</encoder>
 	</appender>
 
-	<logger name="com.graphql_java_generator" level="trace" />
-	<logger name="org.graphql_forum_sample.client" level="trace" />
+	<logger name="com.graphql_java_generator" level="info" />
+	<logger name="org.graphql_forum_sample.client" level="info" />
 	<root level="warn">
 		<appender-ref ref="Console" />
 	</root>

@@ -36,16 +36,16 @@ public class PartialPreparedQueries {
 	 * found, of if more than one matching bean is found
 	 */
 	@Autowired
-	QueryTypeExecutor queryExecutor;
+	private QueryTypeExecutor queryExecutor;
 
 	/** Prepared partial requests */
-	GraphQLRequest boardsRequest;
+	private GraphQLRequest boardsRequest;
 
 	/** Prepared partial requests, with query parameters */
-	GraphQLRequest topicsRequest;
+	private GraphQLRequest topicsRequest;
 
 	/** Prepared partial requests, with both query parameters and bind variables */
-	GraphQLRequest topicsAndPostsRequest;
+	private GraphQLRequest topicsAndPostsRequest;
 
 	/**
 	 * Thanks to the {@link PostConstruct} annotation, this method is called once all autowired field are set. It's a
@@ -69,15 +69,13 @@ public class PartialPreparedQueries {
 				+ "}");
 	}
 
-	public void boards() throws GraphQLRequestExecutionException {
-		List<Board> boards = queryExecutor.boards(boardsRequest);
-		logger.trace("Boards read: {}", boards);
+	public List<Board> boards() throws GraphQLRequestExecutionException {
+		return queryExecutor.boards(boardsRequest);
 	}
 
 	/** The topics query has one parameter: the board name */
-	public void topics(String aBoardName) throws GraphQLRequestExecutionException {
-		List<Topic> topics = queryExecutor.topics(topicsRequest, aBoardName);
-		logger.trace("Topics read: {}", topics);
+	public List<Topic> topics(String aBoardName) throws GraphQLRequestExecutionException {
+		return queryExecutor.topics(topicsRequest, aBoardName);
 	}
 
 	/** The topics query has one parameter: the board name. And the prepared request has three bind parameters */

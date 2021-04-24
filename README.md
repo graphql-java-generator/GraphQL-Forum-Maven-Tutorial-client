@@ -402,10 +402,10 @@ public class PartialPreparedQueries {
 	 * found, of if more than one matching bean is found
 	 */
 	@Autowired
-	QueryTypeExecutor queryExecutor;
+	private QueryTypeExecutor queryExecutor;
 
 	// Prepared partial requests
-	GraphQLRequest boardsRequest;
+	private GraphQLRequest boardsRequest;
 
 	/**
 	 * Thanks to the {@link PostConstruct} annotation, this method is called once all autowired field are set. It's a
@@ -420,9 +420,8 @@ public class PartialPreparedQueries {
 				.getBoardsGraphQLRequest("{id name publiclyAvailable topics {id title date nbPosts}}");
 	}
 
-	public void boards() throws GraphQLRequestExecutionException {
-		List<Board> boards = queryExecutor.boards(boardsRequest);
-		logger.trace("Boards read: {}", boards);
+	public List<Board> boards() throws GraphQLRequestExecutionException {
+		return queryExecutor.boards(boardsRequest);
 	}
 }
 ```
@@ -439,16 +438,17 @@ public class Application implements CommandLineRunner {
 	static protected Logger logger = LoggerFactory.getLogger(Application.class);
 
 	@Autowired
-	PartialPreparedQueries partialPreparedQueries;
+	private PartialPreparedQueries partialPreparedQueries;
 
 	@Override
 	public void run(String... args) throws GraphQLRequestExecutionException {
 
 		...
 
-		partialPreparedQueries.boards();
+		List<Board> boards = partialPreparedQueries.boards();
+		logger.trace("Boards read: {}", boards);
 
-		...
+		... (do something useful with boards)
 
 	}
 }
@@ -494,12 +494,12 @@ public class PartialPreparedQueries {
 	 * found, of if more than one matching bean is found
 	 */
 	@Autowired
-	QueryTypeExecutor queryExecutor;
+	private QueryTypeExecutor queryExecutor;
 
 ...
 
 	/** Prepared partial requests, with parameters */
-	GraphQLRequest topicsRequest;
+	private GraphQLRequest topicsRequest;
 
 	@PostConstruct
 	public void init() throws GraphQLRequestPreparationException {
@@ -514,9 +514,8 @@ public class PartialPreparedQueries {
 ...
 
 	/** The topics query has one parameter: the board name */
-	public void topics(String aBoardName) throws GraphQLRequestExecutionException {
-		List<Topic> topics = queryExecutor.topics(topicsRequest, aBoardName);
-		logger.trace("Topics read: {}", topics);
+	public List<Topic> topics(String aBoardName) throws GraphQLRequestExecutionException {
+		return queryExecutor.topics(topicsRequest, aBoardName);
 	}
 }
 ```
@@ -558,12 +557,12 @@ public class PartialPreparedQueries {
 	static protected Logger logger = LoggerFactory.getLogger(PartialPreparedQueries.class);
 
 	@Autowired
-	QueryTypeExecutor queryExecutor;
+	private QueryTypeExecutor queryExecutor;
 
 	...
 
 
-	GraphQLRequest topicsAndPostsRequest;
+	private GraphQLRequest topicsAndPostsRequest;
 
 	@PostConstruct
 	public void init() throws GraphQLRequestPreparationException {
@@ -608,6 +607,7 @@ A full request allows to:
 * Execute several queries into one call toward the server  
 * Add directives to the query/mutation itself
 * Use GraphQL global fragments into your query (inline fragment are usable with partial requests as well)
+* Use GraphQL variables
 
 The main difference between _Partial_ and _Full_ requests, is that the method that executes a full request returns an instance of the QueryType or MutationType, as defined the query or mutation is defined in the GraphQL schema. This means:
 * That you can have the response for several queries or mutations in one call
@@ -617,41 +617,32 @@ The main difference between _Partial_ and _Full_ requests, is that the method th
 Here is a sample:
 
 ```Java
-public class GraphQLClient {
+@Component
+public class FullPreparedQueries {
 
 	/** The logger for this class */
-	static protected Logger logger = LoggerFactory.getLogger(GraphQLClient.class);
+	static protected Logger logger = LoggerFactory.getLogger(FullPreparedQueries.class);
 
-	MutationTypeExecutor mutationExecutor;
-	GraphQLRequest boardsFullRequest;
+	@Autowired
+	private MutationTypeExecutor mutationExecutor;
+
+	private GraphQLRequest createPostRequest;
 
 	/**
-	 * This constructor prepares the GraphQL requests, so that they can be used by the {@link #execPartialRequests()}
-	 * method
+	 * Thanks to the {@link PostConstruct} annotation, this method is called once all autowired field are set. It's a
+	 * kind of constructor for Spring beans.
 	 */
-	public GraphQLClient() throws GraphQLRequestPreparationException {
-
-		// Creation of the query executor, for this GraphQL endpoint
-		logger.info("Connecting to GraphQL endpoint");
-		mutationExecutor = new MutationTypeExecutor("http://localhost:8180/graphql");
+	@PostConstruct
+	public void init() throws GraphQLRequestPreparationException {
+		logger.info("Preparation for PartialPreparedQuery");
 
 		// Preparation of the GraphQL Full requests, that will be used in the execFullRequests() method
-		boardsFullRequest = mutationExecutor
+		createPostRequest = mutationExecutor
 				.getGraphQLRequest("mutation {createPost(post: &postInput) { id date author{id name} title content}}");
 	}
 
-	public void execFullRequests() throws GraphQLRequestExecutionException {
-		// Let's create a dummy postInput parameter, with builders generated for each object by the plugin
-		TopicPostInput topicInput = new TopicPostInput.Builder().withAuthorId("00000000-0000-0000-0000-000000000001")
-				.withPubliclyAvailable(true).withDate(new GregorianCalendar(2019, 4 - 1, 30).getTime())
-				.withTitle("a title").withContent("Some content").build();
-		PostInput postInput = new PostInput.Builder().withFrom(new GregorianCalendar(2018, 3 - 1, 2).getTime())
-				.withInput(topicInput).withTopicId("00000000-0000-0000-0000-000000000002").build();
-
-		MutationType response = mutationExecutor.exec(boardsFullRequest, "postInput", postInput);
-		Post createdPost = response.getCreatePost();
-
-		... Do something with createdPost
+	public Post createPost(PostInput postInput) throws GraphQLRequestExecutionException {
+		return mutationExecutor.exec(createPostRequest, "postInput", postInput).getCreatePost();
 	}
 }
 ```
