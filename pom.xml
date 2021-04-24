@@ -14,8 +14,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- The graphql plugin's version, used in this tutorial -->
-		<!-- This should be the last released version, that is: 1.14 -->
-		<graphql-maven-plugin.version>local-SNAPSHOT</graphql-maven-plugin.version>
+		<graphql-maven-plugin.version>1.14.1</graphql-maven-plugin.version>
 	</properties>
 
 
