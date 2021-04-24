@@ -58,7 +58,7 @@ Let's first have a look at the Maven **pom.xml** file:
 	<version>1.0-SNAPSHOT</version>
 
 	<properties>
-		<graphql-maven-plugin.version>1.14</graphql-maven-plugin.version>
+		<graphql-maven-plugin.version>1.14.1</graphql-maven-plugin.version>
 	</properties>
 	
 	<build>
@@ -113,7 +113,7 @@ Then the Gradle **build.gradle** file:
 
 ```Groovy
 plugins {
-	id "com.graphql_java_generator.graphql-gradle-plugin" version "1.14"
+	id "com.graphql_java_generator.graphql-gradle-plugin" version "1.14.1"
 	id 'java'
 }
 
@@ -124,7 +124,7 @@ repositories {
 
 dependencies {
 	// The graphql-java-runtime module agregates all dependencies for the generated code, including the plugin runtime
-	implementation "com.graphql-java-generator:graphql-java-runtime:1.14" // This MUST BE the same version as the graphql-gradle-plugin one
+	implementation "com.graphql-java-generator:graphql-java-runtime:1.14.1" // This MUST BE the same version as the graphql-gradle-plugin one
 	implementation "org.apache.logging.log4j:log4j-slf4j-impl:2.12.1"
 }
 
@@ -287,12 +287,16 @@ This class will look like this:
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-/**This class contain the functional code that is executed. It uses the GraphQLXxx Spring beans for that. */
+/*
+ * This class contains the functional code that is executed. It uses the GraphQLXxx Spring beans for that. It is started
+ * by Spring, once the application context is initialized, as it implements {@link CommandLineRunner}
+ */
 @Component // This annotation marks this class as a Spring bean
 public class Application implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
+		// The classical minimum app ;)    (no GraphQL yet)
 		System.out.println("Hello world");
 	}
 
@@ -400,32 +404,64 @@ public class PartialPreparedQueries {
 	@Autowired
 	QueryTypeExecutor queryExecutor;
 
-	// Partial requests
-	GraphQLRequest boardsPartialRequest;
+	// Prepared partial requests
+	GraphQLRequest boardsRequest;
 
+	/**
+	 * Thanks to the {@link PostConstruct} annotation, this method is called once all autowired field are set. It's a
+	 * kind of constructor for Spring beans.
+	 */
 	@PostConstruct
 	public void init() throws GraphQLRequestPreparationException {
 		logger.info("Preparation for PartialPreparedQuery");
 
 		// Preparation of the GraphQL Partial requests, that will be used in the execPartialRequests() method
-		boardsPartialRequest = queryExecutor
+		boardsRequest = queryExecutor
 				.getBoardsGraphQLRequest("{id name publiclyAvailable topics {id title date nbPosts}}");
 	}
 
-	public void execQueryBoards() throws GraphQLRequestExecutionException {
-		List<Board> boards = queryExecutor.boards(boardsPartialRequest);
+	public void boards() throws GraphQLRequestExecutionException {
+		List<Board> boards = queryExecutor.boards(boardsRequest);
 		logger.trace("Boards read: {}", boards);
 	}
 }
 ```
 
+This class is a Spring bean. It's loaded like other Spring beans: with the `@Autowired` annotation (see also the Spring doc for other such annotations).
+
+You can use it in your `Application` class like this:
+
+```java
+@Component
+public class Application implements CommandLineRunner {
+
+	/** The logger for this class */
+	static protected Logger logger = LoggerFactory.getLogger(Application.class);
+
+	@Autowired
+	PartialPreparedQueries partialPreparedQueries;
+
+	@Override
+	public void run(String... args) throws GraphQLRequestExecutionException {
+
+		...
+
+		partialPreparedQueries.boards();
+
+		...
+
+	}
+}
+```
+
+
 And you're done:
-* The `GraphQLClient` constructor prepares the request(s)
+* The `PartialPreparedQueries` Spring bean is loaded by Spring. Spring calls its `init()` method once all autowired fields are set, as it is marked by the `@PostConstruct` constructor prepares the request(s)
 * The _exec()_ method executes the query 
 
 Of course, in a real application case, you would prepare more requests
 
-Execution of a __Mutation__ works in exactly the same way.
+The execution of a __Mutation__ works in exactly the same way.
 
 
 # Execution of a Query/Mutation with parameters
@@ -445,35 +481,47 @@ type QueryType {
 This query is used this way:
 
 ```Java
-public class GraphQLClient {
+@Component
+public class PartialPreparedQueries {
 
 	/** The logger for this class */
-	static protected Logger logger = LoggerFactory.getLogger(GraphQLClient.class);
+	static protected Logger logger = LoggerFactory.getLogger(PartialPreparedQueries.class);
 
+	/**
+	 * The executor, that allows to execute GraphQL queries. The class name is the one defined in the GraphQL schema,
+	 * with the suffix Executor.<BR/>
+	 * It is automagically loaded by Spring, from the Beans it has discovered. An error is thrown if no matching bean is
+	 * found, of if more than one matching bean is found
+	 */
+	@Autowired
 	QueryTypeExecutor queryExecutor;
-	GraphQLRequest allTopicsRequest;
 
-	/** This constructor prepares the GraphQL requests, so that they can be used by the {@link #exec()} method */
-	public GraphQLClient() throws GraphQLRequestPreparationException {
-		// Creation of the query executor, for this GraphQL endpoint
-		logger.info("Connecting to GraphQL endpoint");
-		queryExecutor = new QueryTypeExecutor("http://localhost:8180/graphql");
+...
 
-		// Preparation of the GraphQL requests, that will be used in the exec method
-		allTopicsRequest = queryExecutor.getTopicsGraphQLRequest("{id date author {id name} nbPosts title content}");
+	/** Prepared partial requests, with parameters */
+	GraphQLRequest topicsRequest;
+
+	@PostConstruct
+	public void init() throws GraphQLRequestPreparationException {
+		logger.info("Preparation for PartialPreparedQuery");
+
+...
+
+		// Preparation of the GraphQL Partial requests, that will be used in the execPartialRequests() method
+		topicsRequest = queryExecutor.getTopicsGraphQLRequest("{id date author {id name} nbPosts title content}");
 	}
 
-	public void exec() throws GraphQLRequestExecutionException {
-		// Let's get, then display, all topics of one of these boards
-		String aBoardName = "Board name 2";
-		List<Topic> topics = queryExecutor.topics(allTopicsRequest, aBoardName);
-		
-		... do something with topics
+...
+
+	/** The topics query has one parameter: the board name */
+	public void topics(String aBoardName) throws GraphQLRequestExecutionException {
+		List<Topic> topics = queryExecutor.topics(topicsRequest, aBoardName);
+		logger.trace("Topics read: {}", topics);
 	}
 }
 ```
 
-The only change is that all the query parameters are parameter of the `queryExecutor.topics(..)` method. The _topics(..)_ method take care of serializing and sending the board name parameter to the GraphQL server.
+The only change is that all the query parameters are parameters of the `queryExecutor.topics(..)` method. The `topics(..)` method takes care of serializing and sending the board name parameter to the GraphQL server.
 
 # Execution of a Query/Mutation with bind parameters
 
@@ -501,47 +549,49 @@ You can define bind parameters as being optional or mandatory without enforcing 
 * You can define a GraphQL optional parameter as mandatory in your use case. Just prefi the bind parameter by a _&_
 * Of course, GraphQL mandatory parameter should be mandatory bind parameters
 
-Here is the code:  
+Here is the code:
 
 ```Java
-public class GraphQLClient {
+@Component
+public class PartialPreparedQueries {
 
-	/** The logger for this class */
-	static protected Logger logger = LoggerFactory.getLogger(GraphQLClient.class);
+	static protected Logger logger = LoggerFactory.getLogger(PartialPreparedQueries.class);
 
+	@Autowired
 	QueryTypeExecutor queryExecutor;
-	GraphQLRequest topicsSinceRequest;
 
-	/** This constructor prepares the GraphQL requests, so that they can be used by the {@link #exec()} method */
-	public GraphQLClient() throws GraphQLRequestPreparationException {
+	...
 
-		// Creation of the query executor, for this GraphQL endpoint
-		logger.info("Connecting to GraphQL endpoint");
-		queryExecutor = new QueryTypeExecutor("http://localhost:8180/graphql");
 
-		// Preparation of the GraphQL requests, that will be used in the exec method
-		topicsSinceRequest = queryExecutor.getTopicsGraphQLRequest(""//
+	GraphQLRequest topicsAndPostsRequest;
+
+	@PostConstruct
+	public void init() throws GraphQLRequestPreparationException {
+
+		...
+		
+		topicsAndPostsRequest = queryExecutor.getTopicsGraphQLRequest(""//
 				+ "{" //
 				+ "  id date author {id name} nbPosts title content "//
 				+ "  posts(memberId: ?memberId, memberName: ?memberName, since: &since)  {id date title}"//
 				+ "}");
-
 	}
 
-	public void exec() throws GraphQLRequestExecutionException { 
-		java.util.Date sinceParam = new GregorianCalendar(2018, 3 - 1, 2).getTime();
-		List<Topic> topicsSince = queryExecutor.topics(topicsSinceRequest, //
-				"Board name 2", // This the query parameter. Depending on the GraphQL schema, there could be others
-				"memberId", "00000000-0000-0000-0000-000000000002", //
-				// No value is given for the optional memberName parameter
-				"since", sinceParam);
-		
-		... do something with topicsSince
+...
+
+	/** The topics query has one parameter: the board name. And the prepared request has three bind parameters */
+	public List<Topic> topicsAndPostsRequest(String aBoardName, String memberId, String memberName, Date since)
+			throws GraphQLRequestExecutionException {
+		return queryExecutor.topics(topicsAndPostsRequest, //
+				aBoardName, // This the query parameter. Depending on the GraphQL schema, there could be others
+				"memberId", memberId, //
+				"memberName", memberName, //
+				"since", since);
 	}
 }
 ```
 
-As there is no provided value for the _memberName_ bind parameter, this parameter is not sent to the server. It's correct as this parameter is optional in both the bind parameter definition in the query (it starts by a _?_ ) and the GraphQL schema.
+If a parameter value is null, it won't be sent to the server. It's correct as this parameter is optional in both the bind parameter definition in the query (it starts by a _?_ ) and the GraphQL schema.
 
 Please note that:
 * If a bind parameter is set for a GraphQL array/list, you'll have to provide a java.util.List<YourObject> instance, where YourObject is the type defined in the GraphQL schema.  

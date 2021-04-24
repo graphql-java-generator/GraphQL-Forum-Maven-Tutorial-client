@@ -3,11 +3,13 @@
  */
 package org.graphql_forum_sample.client;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
 
 import org.forum.client.Board;
+import org.forum.client.Topic;
 import org.forum.client.util.GraphQLRequest;
 import org.forum.client.util.QueryTypeExecutor;
 import org.slf4j.Logger;
@@ -36,21 +38,55 @@ public class PartialPreparedQueries {
 	@Autowired
 	QueryTypeExecutor queryExecutor;
 
-	// Partial requests
-	GraphQLRequest boardsPartialRequest;
+	/** Prepared partial requests */
+	GraphQLRequest boardsRequest;
 
+	/** Prepared partial requests, with query parameters */
+	GraphQLRequest topicsRequest;
+
+	/** Prepared partial requests, with both query parameters and bind variables */
+	GraphQLRequest topicsAndPostsRequest;
+
+	/**
+	 * Thanks to the {@link PostConstruct} annotation, this method is called once all autowired field are set. It's a
+	 * kind of constructor for Spring beans.
+	 */
 	@PostConstruct
 	public void init() throws GraphQLRequestPreparationException {
 		logger.info("Preparation for PartialPreparedQuery");
 
 		// Preparation of the GraphQL Partial requests, that will be used in the execPartialRequests() method
-		boardsPartialRequest = queryExecutor
+		boardsRequest = queryExecutor
 				.getBoardsGraphQLRequest("{id name publiclyAvailable topics {id title date nbPosts}}");
+
+		// Preparation of the GraphQL Partial requests, that will be used in the execPartialRequests() method
+		topicsRequest = queryExecutor.getTopicsGraphQLRequest("{id date author {id name} nbPosts title content}");
+
+		topicsAndPostsRequest = queryExecutor.getTopicsGraphQLRequest(""//
+				+ "{" //
+				+ "  id date author {id name} nbPosts title content "//
+				+ "  posts(memberId: ?memberId, memberName: ?memberName, since: &since)  {id date title}"//
+				+ "}");
 	}
 
-	public void execQueryBoards() throws GraphQLRequestExecutionException {
-		List<Board> boards = queryExecutor.boards(boardsPartialRequest);
+	public void boards() throws GraphQLRequestExecutionException {
+		List<Board> boards = queryExecutor.boards(boardsRequest);
 		logger.trace("Boards read: {}", boards);
 	}
 
+	/** The topics query has one parameter: the board name */
+	public void topics(String aBoardName) throws GraphQLRequestExecutionException {
+		List<Topic> topics = queryExecutor.topics(topicsRequest, aBoardName);
+		logger.trace("Topics read: {}", topics);
+	}
+
+	/** The topics query has one parameter: the board name. And the prepared request has three bind parameters */
+	public List<Topic> topicsAndPostsRequest(String aBoardName, String memberId, String memberName, Date since)
+			throws GraphQLRequestExecutionException {
+		return queryExecutor.topics(topicsAndPostsRequest, //
+				aBoardName, // This the query parameter. Depending on the GraphQL schema, there could be others
+				"memberId", memberId, //
+				"memberName", memberName, //
+				"since", since);
+	}
 }

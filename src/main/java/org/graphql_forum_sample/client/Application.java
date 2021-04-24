@@ -9,7 +9,8 @@ import org.springframework.stereotype.Component;
 import com.graphql_java_generator.exception.GraphQLRequestExecutionException;
 
 /**
- * This class contain the functional code that is executed. It uses the GraphQLXxx Spring beans for that.
+ * This class contains the functional code that is executed. It uses the GraphQLXxx Spring beans for that. It is started
+ * by Spring, once the application context is initialized, as it implements {@link CommandLineRunner}
  * 
  * @author etienne-sf
  */
@@ -27,7 +28,12 @@ public class Application implements CommandLineRunner {
 		logger.debug("===========================================================================================");
 		logger.debug("====================  Executing Partial Requests  =========================================");
 		logger.debug("===========================================================================================");
-		partialPreparedQueries.execQueryBoards();
+		partialPreparedQueries.boards();
+
+		logger.debug("===========================================================================================");
+		logger.debug("====================  Executing Partial Requests, with parameters  ========================");
+		logger.debug("===========================================================================================");
+		partialPreparedQueries.topics("Board name 2");
 
 		logger.info("Normal end of execution");
 	}
