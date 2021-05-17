@@ -121,7 +121,7 @@ dependencies {
 compileJava.dependsOn generateClientCode
 
 // The line below adds the generated sources as a java source folder
-sourceSets.main.java.srcDirs += '/build/generated/graphql-maven-plugin'
+sourceSets.main.java.srcDirs += '/build/generated/sources/graphqlGradlePlugin'
 
 // Let's configure the GraphQL Gradle Plugin:
 // All available parameters are described here: 
@@ -171,7 +171,7 @@ This will generate the client code in the _packageName_ package (or in the _com.
 
 The code is generated in the :
 * (for Maven) _/target/generated-sources/graphql-maven-plugin_ folder. And thanks to the _build-helper-maven-plugin_, it should automatically be added as a source folder to your favorite IDE.
-* (for Gradle) _/build/generated-sources/generateClientCode_ folder. And thanks to the  _sourceSets.main.java.srcDirs += ..._ line in the _build.gradle_ file, it should automatically be added as a source folder to your favorite IDE.
+* (for Gradle) _/build/generated/sources/graphqlGradlePlugin_ folder. And thanks to the  _sourceSets.main.java.srcDirs += ..._ line in the _build.gradle_ file, it should automatically be added as a source folder to your favorite IDE.
 
 Let's take a look at the generated code:
 * The __org.forum.client__ package contains all classes that maps to the GraphQL schema:
