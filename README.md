@@ -120,7 +120,8 @@ dependencies {
 // The line below makes the GraphQL plugin be executed before Java compiles, so that all sources are generated on time
 compileJava.dependsOn generateClientCode
 
-// The line below adds the generated sources as a java source folder
+// The line below adds the generated sources as a java source folder in the IDE
+sourceSets.main.java.srcDirs += '/build/generated/resources/graphqlGradlePlugin'
 sourceSets.main.java.srcDirs += '/build/generated/sources/graphqlGradlePlugin'
 
 // Let's configure the GraphQL Gradle Plugin:
