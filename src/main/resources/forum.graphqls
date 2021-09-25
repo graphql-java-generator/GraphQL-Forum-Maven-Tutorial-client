@@ -1,26 +1,21 @@
 scalar Date
 
-schema {
-    query: QueryType
-    mutation: MutationType
-    subscription: SubscriptionType
-}
-
-type QueryType {
+type Query {
     boards: [Board]
     nbBoards: Int
     topics(boardName: String!): [Topic]!
     findTopics(boardName: String!, keyword: [String!]): [Topic]
 }
 
-type MutationType {
+type Mutation {
 	createBoard(name: String!, publiclyAvailable: Boolean): Board!
 	createTopic(topic: TopicInput): Topic!
 	createPost(post: PostInput!): Post!
 	createPosts(spam: [PostInput!]!): [Post!]!
+	createMember(input: MemberInput!): Member
 }
 
-type SubscriptionType {
+type Subscription {
 	subscribeToNewPost(boardName: String!): Post!
 }
 
@@ -28,6 +23,13 @@ enum MemberType {
     ADMIN
     MODERATOR
     STANDARD
+}
+
+input MemberInput {
+    name: String!
+    alias: String
+    email: String!
+    type: MemberType
 }
 
 type Member {

@@ -8,7 +8,7 @@ import javax.annotation.PostConstruct;
 import org.forum.client.Post;
 import org.forum.client.PostInput;
 import org.forum.client.util.GraphQLRequest;
-import org.forum.client.util.MutationTypeExecutor;
+import org.forum.client.util.MutationExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +30,7 @@ public class FullPreparedQueries {
 	static protected Logger logger = LoggerFactory.getLogger(FullPreparedQueries.class);
 
 	@Autowired
-	private MutationTypeExecutor mutationExecutor;
+	private MutationExecutor mutationExecutor;
 
 	private GraphQLRequest createPostRequest;
 

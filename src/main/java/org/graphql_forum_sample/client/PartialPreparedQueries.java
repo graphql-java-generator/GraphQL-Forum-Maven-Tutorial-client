@@ -11,7 +11,7 @@ import javax.annotation.PostConstruct;
 import org.forum.client.Board;
 import org.forum.client.Topic;
 import org.forum.client.util.GraphQLRequest;
-import org.forum.client.util.QueryTypeExecutor;
+import org.forum.client.util.QueryExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +36,7 @@ public class PartialPreparedQueries {
 	 * found, of if more than one matching bean is found
 	 */
 	@Autowired
-	private QueryTypeExecutor queryExecutor;
+	private QueryExecutor queryExecutor;
 
 	/** Prepared partial requests */
 	private GraphQLRequest boardsRequest;

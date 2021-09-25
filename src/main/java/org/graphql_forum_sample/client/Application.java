@@ -7,7 +7,7 @@ import org.forum.client.Board;
 import org.forum.client.PostInput;
 import org.forum.client.Topic;
 import org.forum.client.TopicPostInput;
-import org.forum.client.util.QueryTypeExecutor;
+import org.forum.client.util.QueryExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +30,7 @@ public class Application implements CommandLineRunner {
 	static protected Logger logger = LoggerFactory.getLogger(Application.class);
 
 	@Autowired
-	private QueryTypeExecutor queryExecutor;
+	private QueryExecutor queryExecutor;
 
 	@Autowired
 	private PartialPreparedQueries partialPreparedQueries;

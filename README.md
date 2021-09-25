@@ -1,4 +1,4 @@
-# A tutorial for the GraphQL Gradle plugin (client side)
+# A tutorial for the GraphQL Maven plugin (client side)
 
 
 This Tutorial describes how-to create a GraphQL client application, with the [graphql-maven-plugin](https://github.com/graphql-java-generator/graphql-maven-plugin-project) and the [graphql Gradle plugin](https://github.com/graphql-java-generator/graphql-gradle-plugin-project).
@@ -24,9 +24,9 @@ This schema contains:
 * A custom scalar definition: Date.
     * This allows to define new type to define objet's field. We'll have to provide it's implementation to read and write Date fields. 
 * A schema object. This declaration is optional. It allows to define query/mutation/subscription specific names. This schema declares:
-    * QueryType as a query.
-    * MutationType as a mutation
-    * SubscriptionType as a subscription
+    * Query as a query.
+    * Mutation as a mutation
+    * Subscription as a subscription
     * These types are declared below, as any regular object. Their definition is that of standard Object, but their meaning is very different. These fields are respectively the queries, mutations and subscriptions that you can execute, as a client GraphQL schema that connects to a GraphQL server that implements this schema.
 * Four regular GraphQL objects: Member, Board, Topic, Post
     * These are the objects defined in the Object model that can queried (with queries or subscriptions), or inserted/updated (with mutations)
@@ -181,8 +181,8 @@ Let's take a look at the generated code:
 * The __org.forum.client.util__ package contains:
     * _CustomScalarXxx_ classes are utility classes for custom scalars: a registry, and one JSON deserializer for each custom scalar defined in the GraphQL schema
     * _GraphQLRequest_ : its a base element to execute GraphQL request (query, mutation or subscription). See below for the details.
-    * _QueryTypeExecutor_ , _MutationTypeExecutor_ and _SubscriptionTypeExecutor_ allow to execute the queries, mutations and subscriptions defined in the schema
-    * _QueryType_ , _MutationType_ and _SubscriptionType_ are deprecated and will be removed in 2.0 version
+    * _QueryExecutor_ , _MutationExecutor_ and _SubscriptionExecutor_ allow to execute the queries, mutations and subscriptions defined in the schema
+    * _Query_ , _Mutation_ and _Subscription_ are deprecated and will be removed in 2.0 version
     * _XxxResponse_ are deprecated class, that exist only for backward compatibility.
     * _XxxRootResponse_ are the target for deserialization when executing a query or a mutation. 
 * The _com.graphql_java_generator_ and its subpackages is the plugin's runtime. It's added to your project, so that your project has __no dependency__ from graphql-java-generator.
@@ -190,7 +190,7 @@ Let's take a look at the generated code:
 
 To sum up, you'll use:
 * The _GraphQLRequest_ to store a prepared request
-* The _QueryType_ , _MutationType_ and _SubscriptionType_ classes to prepare and execute GraphQL requests
+* The _Query_ , _Mutation_ and _Subscription_ classes to prepare and execute GraphQL requests
 * The POJOs in the _org.forum.client_ package to manipulate the data defined in the GraphQL schema 
 
 ## Choice 1: Partial or Full requests 
@@ -233,7 +233,7 @@ The easiest way is to execute Partial Request. And the most effective is that th
 The code below executes the boards query, as defined in this extract of the GraphQL schema:
 
 ```
-type QueryType {
+type Query {
     boards: [Board]
 [...]
 }
@@ -246,14 +246,14 @@ public class GraphQLClient {
 	/** The logger for this class */
 	static protected Logger logger = LoggerFactory.getLogger(GraphQLClient.class);
 
-	QueryTypeExecutor queryExecutor;
+	QueryExecutor queryExecutor;
 	GraphQLRequest boardsRequest;
 
 	/** This constructor prepares the GraphQL requests, so that they can be used by the {@link #exec()} method */
 	public GraphQLClient() throws GraphQLRequestPreparationException {
 		// Creation of the query executor, for this GraphQL endpoint
 		logger.info("Connecting to GraphQL endpoint");
-		queryExecutor = new QueryTypeExecutor("http://localhost:8180/graphql");
+		queryExecutor = new QueryExecutor("http://localhost:8180/graphql");
 
 		// Preparation of the GraphQL requests, that will be used in the exec method
 		boardsRequest = queryExecutor
@@ -285,7 +285,7 @@ The query/mutation parameters are the parameters that are defined on the field o
 Let's execute the topics query, that is defined like this:
 
 ```
-type QueryType {
+type Query {
 [...]
     topics(boardName: String!): [Topic]!
 [...]
@@ -300,14 +300,14 @@ public class GraphQLClient {
 	/** The logger for this class */
 	static protected Logger logger = LoggerFactory.getLogger(GraphQLClient.class);
 
-	QueryTypeExecutor queryExecutor;
+	QueryExecutor queryExecutor;
 	GraphQLRequest allTopicsRequest;
 
 	/** This constructor prepares the GraphQL requests, so that they can be used by the {@link #exec()} method */
 	public GraphQLClient() throws GraphQLRequestPreparationException {
 		// Creation of the query executor, for this GraphQL endpoint
 		logger.info("Connecting to GraphQL endpoint");
-		queryExecutor = new QueryTypeExecutor("http://localhost:8180/graphql");
+		queryExecutor = new QueryExecutor("http://localhost:8180/graphql");
 
 		// Preparation of the GraphQL requests, that will be used in the exec method
 		allTopicsRequest = queryExecutor.getTopicsGraphQLRequest("{id date author {id name} nbPosts title content}");
@@ -359,7 +359,7 @@ public class GraphQLClient {
 	/** The logger for this class */
 	static protected Logger logger = LoggerFactory.getLogger(GraphQLClient.class);
 
-	QueryTypeExecutor queryExecutor;
+	QueryExecutor queryExecutor;
 	GraphQLRequest topicsSinceRequest;
 
 	/** This constructor prepares the GraphQL requests, so that they can be used by the {@link #exec()} method */
@@ -367,7 +367,7 @@ public class GraphQLClient {
 
 		// Creation of the query executor, for this GraphQL endpoint
 		logger.info("Connecting to GraphQL endpoint");
-		queryExecutor = new QueryTypeExecutor("http://localhost:8180/graphql");
+		queryExecutor = new QueryExecutor("http://localhost:8180/graphql");
 
 		// Preparation of the GraphQL requests, that will be used in the exec method
 		topicsSinceRequest = queryExecutor.getTopicsGraphQLRequest(""//
@@ -409,7 +409,7 @@ A full request allows to:
 * Add directives to the query/mutation itself
 * Use GraphQL global fragments into your query (inline fragment are usable with partial requests as well)
 
-The main difference between _Partial_ and _Full_ requests, is that the method that executes a full request returns an instance of the QueryType or MutationType, as defined the query or mutation is defined in the GraphQL schema. This means:
+The main difference between _Partial_ and _Full_ requests, is that the method that executes a full request returns an instance of the Query or Mutation, as defined the query or mutation is defined in the GraphQL schema. This means:
 * That you can have the response for several queries or mutations in one call
     * As alias are not managed yet, you can execute several different queries or several different mutations in a call. But you can not execute several times the same query or mutation in one call.
 * You need to call the relevant getter to retrieve the result for each query or mutation that you have executed
@@ -422,7 +422,7 @@ public class GraphQLClient {
 	/** The logger for this class */
 	static protected Logger logger = LoggerFactory.getLogger(GraphQLClient.class);
 
-	MutationTypeExecutor mutationExecutor;
+	MutationExecutor mutationExecutor;
 	GraphQLRequest boardsFullRequest;
 
 	/**
@@ -433,7 +433,7 @@ public class GraphQLClient {
 
 		// Creation of the query executor, for this GraphQL endpoint
 		logger.info("Connecting to GraphQL endpoint");
-		mutationExecutor = new MutationTypeExecutor("http://localhost:8180/graphql");
+		mutationExecutor = new MutationExecutor("http://localhost:8180/graphql");
 
 		// Preparation of the GraphQL Full requests, that will be used in the execFullRequests() method
 		boardsFullRequest = mutationExecutor
@@ -448,7 +448,7 @@ public class GraphQLClient {
 		PostInput postInput = new PostInput.Builder().withFrom(new GregorianCalendar(2018, 3 - 1, 2).getTime())
 				.withInput(topicInput).withTopicId("00000000-0000-0000-0000-000000000002").build();
 
-		MutationType response = mutationExecutor.exec(boardsFullRequest, "postInput", postInput);
+		Mutation response = mutationExecutor.exec(boardsFullRequest, "postInput", postInput);
 		Post createdPost = response.getCreatePost();
 
 		... Do something with createdPost
@@ -481,9 +481,9 @@ Below is another sample, with a full direct query with a named fragment:
 
 ```Java
 import org.forum.client.Board;
-import org.forum.client.QueryType;
+import org.forum.client.Query;
 
-	QueryType response = queryExecutor.exec(
+	Query response = queryExecutor.exec(
 			"fragment topicFields on Topic {id title date} " +
 			"query{boards{id name publiclyAvailable topics {...topicFields nbPosts}}}");
 	List<Board> boards = response.getBoards();
