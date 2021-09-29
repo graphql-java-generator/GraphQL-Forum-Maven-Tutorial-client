@@ -173,6 +173,8 @@ Don't forget to execute (or re-execute) a full build when you change the plugin 
 * (For Maven) Execute _mvn clean compile_
 * (for Gradle) Execute _gradlew clean build_
 
+If you're using eclipse (or other IDE), it may happen (especially with the Gradle plugin, that is less integrated), that you'll have to "Refresh the Gradle plugin" or the "Maven/Update Project...", to make your IDE properly see the generated code.
+
 This will generate the client code in the _packageName_ package (or in the _com.generated.graphql_ if this parameter is not defined)
 
 The code is generated in the :
