@@ -49,6 +49,10 @@ As a Maven or a Gradle plugin, you have to add the plugin in the build:
 Let's first have a look at the Maven **pom.xml** file:
 
 ```XML
+
+	<properties>
+		<graphql-maven-plugin.version>1.17.3</graphql-maven-plugin.version>
+	</properties>
 	
 	<build>
 ...
@@ -97,13 +101,14 @@ Then the Gradle **build.properties** and **build.gradle** files:
 Define once the plugin version in the **build.properties** file:
 
 ```Groovy
-graphQLpluginVersion = 1.14.1
+graphQLPluginVersion = 1.17.3p1
+graphQLRuntimeVersion = 1.17.3
 ```
 
 ```Groovy
 
 plugins {
-	id "com.graphql_java_generator.graphql-gradle-plugin" version "${graphQLpluginVersion}"
+	id "com.graphql_java_generator.graphql-gradle-plugin" version "${graphQLPluginVersion}"
 	id 'java'
 }
 
@@ -114,7 +119,7 @@ repositories {
 
 dependencies {
 	// THE VERSION MUST BE THE SAME AS THE PLUGIN's ONE
-	implementation "com.graphql-java-generator:graphql-java-client-dependencies:${graphQLpluginVersion}"
+	implementation "com.graphql-java-generator:graphql-java-client-dependencies:${graphQLRuntimeVersion}"
 }
 
 // The line below makes the GraphQL plugin be executed before Java compiles, so that all sources are generated on time
