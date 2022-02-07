@@ -5,7 +5,7 @@
 
 
 	<groupId>com.graphql-java-generator</groupId>
-	<artifactId>GraphQL-Forum-Maven-Sample-client</artifactId>
+	<artifactId>GraphQL-Forum-Maven-Tutorial-client</artifactId>
 	<version>1.0-SNAPSHOT</version>
 
 	<url>https://github.com/graphql-java-generator/GraphQL-Forum-Maven-Sample-client</url>
@@ -14,7 +14,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- The graphql plugin's version, used in this tutorial -->
-		<graphql-maven-plugin.version>1.17.3</graphql-maven-plugin.version>
+		<graphql-maven-plugin.version>1.18.2</graphql-maven-plugin.version>
 	</properties>
 
 
@@ -54,7 +54,7 @@
 						</customScalar>
 					</customScalars>
 					<!-- The parameters below change the 1.x default behavior. They are set to respect the behavior of the future 2.x versions -->
-					<generateDeprecatedRequestResponse>false</generateDeprecatedRequestResponse>
+					<copyRuntimeSources>false</copyRuntimeSources>
 					<separateUtilityClasses>true</separateUtilityClasses>
 					<skipGenerationIfSchemaHasNotChanged>true</skipGenerationIfSchemaHasNotChanged>
 				</configuration>
@@ -102,8 +102,7 @@
 		<!-- Dependencies for GraphQL -->
 		<dependency>
 			<groupId>com.graphql-java-generator</groupId>
-			<artifactId>graphql-java-client-dependencies</artifactId>
-			<type>pom</type>
+			<artifactId>graphql-java-client-runtime</artifactId>
 			<version>${graphql-maven-plugin.version}</version>
 		</dependency>
 	</dependencies>

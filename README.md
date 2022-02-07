@@ -7,6 +7,13 @@ This Tutorial describes how-to create a GraphQL client application, with the [gr
 The GraphQL plugin helps both on the server and on the client side. You'll find the tutorials for the server side on the [Maven server tutorial](https://github.com/graphql-java-generator/GraphQL-Forum-Maven-Tutorial-server) and on the [Gradle server tutorial](https://github.com/graphql-java-generator/GraphQL-Forum-Gradle-Tutorial-server)
 
 
+## A note about non-spring applications
+
+This samples uses Spring to wire the GraphQL Repositories in the application.
+
+GraphQL Repositories also work with non-spring app. You'll find the needed info in the [client_graphql_repository wiki's page](https://github.com/graphql-java-generator/graphql-maven-plugin-project/wiki/client_graphql_repository).
+
+
 ## Schema first
 
 This plugin allows a schema first approach.
@@ -51,7 +58,7 @@ Let's first have a look at the Maven **pom.xml** file:
 ```XML
 
 	<properties>
-		<graphql-maven-plugin.version>1.17.3</graphql-maven-plugin.version>
+		<graphql-maven-plugin.version>1.18.2</graphql-maven-plugin.version>
 	</properties>
 	
 	<build>
@@ -101,8 +108,7 @@ Then the Gradle **build.properties** and **build.gradle** files:
 Define once the plugin version in the **build.properties** file:
 
 ```Groovy
-graphQLPluginVersion = 1.17.3p1
-graphQLRuntimeVersion = 1.17.3
+graphQLPluginVersion = 1.18.2
 ```
 
 ```Groovy
@@ -119,15 +125,16 @@ repositories {
 
 dependencies {
 	// THE VERSION MUST BE THE SAME AS THE PLUGIN's ONE
-	implementation "com.graphql-java-generator:graphql-java-client-dependencies:${graphQLRuntimeVersion}"
+	implementation "com.graphql-java-generator:graphql-java-client-dependencies:${graphQLPluginVersion}"
 }
 
 // The line below makes the GraphQL plugin be executed before Java compiles, so that all sources are generated on time
 compileJava.dependsOn generateClientCode
+processResources.dependsOn generateClientCode
 
 // The line below adds the generated sources as a java source folder in the IDE
-sourceSets.main.java.srcDirs += '/build/generated/resources/graphqlGradlePlugin'
 sourceSets.main.java.srcDirs += '/build/generated/sources/graphqlGradlePlugin'
+sourceSets.main.java.srcDirs += '/build/generated/resources/graphqlGradlePlugin'
 
 // Let's configure the GraphQL Gradle Plugin:
 // All available parameters are described here: 
@@ -229,6 +236,41 @@ So let's explain that:
     * It's less secure as, as you may discover at execution time, that there is a syntax error in your query string 
 
 
+## Use of GraphQL Repositories
+
+The plugin helps to define GraphQL requests with __GraphQL Repositories__, that are very alike Spring Repositories.
+
+__GraphQL Repositories__ allows you to define GraphQL requests in a Java interface, without writing any Java code. All the necessary code is executed behind the scene. You'll find all the details in the [client_graphql_repository wiki's page](https://github.com/graphql-java-generator/graphql-maven-plugin-project/wiki/client_graphql_repository).
+
+They allow:
+* The use of Partial and Full requests
+* The definition of GraphQL queries, mutations and subscriptions
+* Only prepared requests (which is better for performance and safety, as request preparation is done when the application starts)
+
+You'll find the most representative samples in this tutorial.
+
+
+## Enabling GraphQL Repositories
+
+For use of GraphQL Repositories in non Spring app, please read the [client_graphql_repository wiki's page](https://github.com/graphql-java-generator/graphql-maven-plugin-project/wiki/client_graphql_repository).
+
+When you create GraphQL Repositories in Spring app, you must declare to the Spring container, where to find the GraphQL Repositories you declared.
+
+This is done through the use of the `@EnableGraphQLRepositories` annotation, on a Spring configuration class. For instance, in a Spring Boot application, it can be added to the main class, like this:
+
+```java
+@SpringBootApplication(scanBasePackageClasses = { Main.class, GraphQLConfiguration.class, QueryExecutor.class })
+@EnableGraphQLRepositories({ "org.graphql_forum_sample.client" })
+public class Main {
+
+	public static void main(String[] args) {
+		SpringApplication.run(Main.class, args);
+	}
+}
+```
+
+In this sample, the GraphQL Repositories are searched in the `org.graphql_forum_sample.client` package. All sub-packages are searched. You can provide a list of more than one packages, if necessary.
+
 
 ## Simple Partial Query/Mutation
 
@@ -246,43 +288,58 @@ type Query {
 }
 ```
 
+Let's define a GraphQL Repository in a Java interface, like this:
 
 ```Java
-public class GraphQLClient {
+@GraphQLRepository
+public interface MyGraphQLRepository {
+
+	...   You can defined as many method as you wish in a GraphQL Repository
+
+	/**
+	 * Execution of the boards query, with this GraphQL query: {id name publiclyAvailable topics {id title date
+	 * nbPosts}}
+	 * 
+	 * @return The GraphQL server's response, mapped into the POJO generated from the GraphQL schema
+	 * @throws GraphQLRequestExecutionException
+	 *             Whenever an exception occurs during request execution
+	 */
+	@PartialRequest(request = "{id name publiclyAvailable topics {id title date nbPosts}}")
+	public List<Board> boards() throws GraphQLRequestExecutionException;
+}
+```
+
+Then, in your code, just declare the use of the GraphQL Repository in order to use it:
+
+```Java
+@Component // This annotation marks this class as a Spring bean (prerequisite to make @Autowire annotation work)
+public class Application implements CommandLineRunner {
 
 	/** The logger for this class */
-	static protected Logger logger = LoggerFactory.getLogger(GraphQLClient.class);
+	static protected Logger logger = LoggerFactory.getLogger(Application.class);
 
-	QueryExecutor queryExecutor;
-	GraphQLRequest boardsRequest;
+	@Autowired
+	private MyGraphQLRepository myGraphQLRepository;
 
-	/** This constructor prepares the GraphQL requests, so that they can be used by the {@link #exec()} method */
-	public GraphQLClient() throws GraphQLRequestPreparationException {
-		// Creation of the query executor, for this GraphQL endpoint
-		logger.info("Connecting to GraphQL endpoint");
-		queryExecutor = new QueryExecutor("http://localhost:8180/graphql");
-
-		// Preparation of the GraphQL requests, that will be used in the exec method
-		boardsRequest = queryExecutor
-				.getBoardsGraphQLRequest("{id name publiclyAvailable topics {id title date nbPosts}}");
-	}
-
-	public void exec() throws GraphQLRequestExecutionException {
-		// Let's get, then display, all available boards
-		List<Board> boards = queryExecutor.boards(boardsRequest);
-
-		... do something with boards
+	@Override
+	public void myMethod() throws GraphQLRequestExecutionException {
+		logger.info("Boards read: {}", boards);
+		
+		...
+		then do something smart with this result
+		...
 	}
 }
 ```
 
 And you're done:
-* The _GraphQLClient_ constructor prepares the request(s)
-* The _exec()_ method executes the query 
+* The `@GraphQLRepository` annotation marks the `MyGraphQLRepository` interface being a GraphQL Repository. Each declared method:
+    * Must be marked by one of the `@PartialRequest` or  `@FullRequest` annotations
+    * The request's parameter of the annotation is mandatory, and allows you to define the GraphQL query
+    * All details (and more samples) can be found in the [client_graphql_repository wiki's page](https://github.com/graphql-java-generator/graphql-maven-plugin-project/wiki/client_graphql_repository).
+* Calling any of method of the GraphQL Repository executes the associated request against the GraphQL server.
 
-Of course, in a real application case, you would prepare more requests
-
-Execution of a __Mutation__ works in exactly the same way.
+Execution of __Mutation__ works in exactly the same way. Execution of __Subscription__ is slightly different, and again, you'll find the needed information in the [client_graphql_repository wiki's page](https://github.com/graphql-java-generator/graphql-maven-plugin-project/wiki/client_graphql_repository).
 
 
 ## Execution of a Query/Mutation with parameters
@@ -299,40 +356,55 @@ type Query {
 }
 ```
 
+The GraphQL Repository contains this additional method:
+
+```java
+@GraphQLRepository
+public interface MyGraphQLRepository {
+
+	...   You can defined as many method as you wish in a GraphQL Repository
+
+	/**
+	 * Execution of the topics query, which has one parameter defined in the GraphQL schema: boardName, that is a
+	 * String. If this query had more then one parameter, all its parameters should be parameters of this method, in the
+	 * same order a defined in the GraphQL schema, and with the relevant Java type.
+	 * 
+	 * @param aBoardName
+	 * @return
+	 * @throws GraphQLRequestExecutionException
+	 */
+	@PartialRequest(request = "{id date author {id name} nbPosts title content}")
+	public List<Topic> topics(String aBoardName) throws GraphQLRequestExecutionException;
+}
+```
+
 This query is used this way:
 
 ```Java
-public class GraphQLClient {
+@Component // This annotation marks this class as a Spring bean (prerequisite to make @Autowire annotation work)
+public class Application implements CommandLineRunner {
 
 	/** The logger for this class */
-	static protected Logger logger = LoggerFactory.getLogger(GraphQLClient.class);
+	static protected Logger logger = LoggerFactory.getLogger(Application.class);
 
-	QueryExecutor queryExecutor;
-	GraphQLRequest allTopicsRequest;
+	@Autowired
+	private MyGraphQLRepository myGraphQLRepository;
 
-	/** This constructor prepares the GraphQL requests, so that they can be used by the {@link #exec()} method */
-	public GraphQLClient() throws GraphQLRequestPreparationException {
-		// Creation of the query executor, for this GraphQL endpoint
-		logger.info("Connecting to GraphQL endpoint");
-		queryExecutor = new QueryExecutor("http://localhost:8180/graphql");
-
-		// Preparation of the GraphQL requests, that will be used in the exec method
-		allTopicsRequest = queryExecutor.getTopicsGraphQLRequest("{id date author {id name} nbPosts title content}");
-	}
-
-	public void exec() throws GraphQLRequestExecutionException {
-		// Let's get, then display, all topics of one of these boards
-		String aBoardName = "Board name 2";
-		List<Topic> topics = queryExecutor.topics(allTopicsRequest, aBoardName);
+	@Override
+	public void myMethod() throws GraphQLRequestExecutionException {
+		List<Topic> topics = myGraphQLRepository.topics("Board name 2");
 		
-		... do something with topics
+		...
+		then do something smart with this result
+		...
 	}
 }
 ```
 
-The only change is that all the query parameters are parameter of the _queryExecutor.topics(..)_ method. The _topics(..)_ method take care of serializing and sending the board name parameter to the GraphQL server.
+The only change is that all the query parameters are parameter of the _queryExecutor.topics(..)_ method. The _topics(..)_ method take care of serializing and sending the board name parameter to the GraphQL server. Then it reads the response, and maps it into the `List<Topic>` response type.
 
 ## Execution of a Query/Mutation with bind parameters
+
 
 The _posts_ field of the _Topic_ object accepts three parameters:
 
@@ -351,49 +423,72 @@ type Topic {
 
 So we can update the previous sample, by querying the topic's posts. We'll define these bind parameters:
 * memberId. It's defined as optional, as it is prefixed by _?_
-* memberName. Also optional.
+* memberName. Also optional (prefixed by _?_)
 * since. This parameter is mandatory, as it is prefixed by _&_
 
-You can define bind parameters as being optional or mandatory without enforcing what's optional or mandatory in the GraphQL schema :  
-* You can define a GraphQL optional parameter as mandatory in your use case. Just prefi the bind parameter by a _&_
-* Of course, GraphQL mandatory parameter should be mandatory bind parameters
+Of course, mandatory parameter must be given at execution time, whereas optional parameter my remain null.
 
-Here is the code:  
+The GraphQL repository is defined this way:
+
+```java
+@GraphQLRepository
+public interface MyGraphQLRepository {
+
+	...   You can defined as many method as you wish in a GraphQL Repository
+
+	/**
+	 * 
+	 * @param boardName
+	 *            The parameter of the topics query, as defined in the GraphQL schema
+	 * @param memberId
+	 *            The bind parameter 'memberId', as defined in this query. It's an optional parameter, as this parameter
+	 *            is marked by a '?' character in this query. That is: the provided value may be null, at execution
+	 *            time.
+	 * @param memberName
+	 *            The bind parameter 'memberName', as defined in this query. It's an optional parameter, as this
+	 *            parameter is marked by a '?' character in this query. That is: the provided value may be null, at
+	 *            execution time.
+	 * @param since
+	 *            The bind parameter 'since', as defined in this query. It's a mandatory parameter, as this parameter is
+	 *            marked by a '&' character in this query. That is: the provided value may NOT be null, at execution
+	 *            time.
+	 * @throws GraphQLRequestExecutionException
+	 *             Whenever an exception occurs during request execution
+	 * @return
+	 */
+	@PartialRequest(requestName = "topics", // The requestName defines the GraphQL defined query. It is mandatory here,
+											// as the method has a different name than the query's name in the GraphQL schema
+			request = "{id date author {id name} nbPosts title content posts(memberId: ?memberId, memberName: ?memberName, since: &since)  {id date title}}")
+	public List<Topic> topicsSince(String boardName, 
+			@BindParameter(name = "memberId") String memberId,
+			@BindParameter(name = "memberName") String memberName, 
+			@BindParameter(name = "since") Date since) throws GraphQLRequestExecutionException;
+}
+```
+
+
+Here is the code that calls the GraphQL repository:  
 
 ```Java
-public class GraphQLClient {
+@Component // This annotation marks this class as a Spring bean (prerequisite to make @Autowire annotation work)
+public class Application implements CommandLineRunner {
 
 	/** The logger for this class */
-	static protected Logger logger = LoggerFactory.getLogger(GraphQLClient.class);
+	static protected Logger logger = LoggerFactory.getLogger(Application.class);
 
-	QueryExecutor queryExecutor;
-	GraphQLRequest topicsSinceRequest;
+	@Autowired
+	private MyGraphQLRepository myGraphQLRepository;
 
-	/** This constructor prepares the GraphQL requests, so that they can be used by the {@link #exec()} method */
-	public GraphQLClient() throws GraphQLRequestPreparationException {
-
-		// Creation of the query executor, for this GraphQL endpoint
-		logger.info("Connecting to GraphQL endpoint");
-		queryExecutor = new QueryExecutor("http://localhost:8180/graphql");
-
-		// Preparation of the GraphQL requests, that will be used in the exec method
-		topicsSinceRequest = queryExecutor.getTopicsGraphQLRequest(""//
-				+ "{" //
-				+ "  id date author {id name} nbPosts title content "//
-				+ "  posts(memberId: ?memberId, memberName: ?memberName, since: &since)  {id date title}"//
-				+ "}");
-
-	}
-
-	public void exec() throws GraphQLRequestExecutionException { 
-		java.util.Date sinceParam = new GregorianCalendar(2018, 3 - 1, 2).getTime();
-		List<Topic> topicsSince = queryExecutor.topics(topicsSinceRequest, //
-				"Board name 2", // This the query parameter. Depending on the GraphQL schema, there could be others
-				"memberId", "00000000-0000-0000-0000-000000000002", //
-				// No value is given for the optional memberName parameter
-				"since", sinceParam);
+	@Override
+	public void run(String... args) throws GraphQLRequestExecutionException {
+		String memberId = null; // may be null, as it's optional
+		String memberName = null; // may be null, as it's optional
+		Date since = new Calendar.Builder().setDate(2022, 02 - 1 /* february */, 01).build().getTime();
 		
-		... do something with topicsSince
+		// Let's call the GraphQL server
+		List<Topic> topicsSince = myGraphQLRepository.topicsSince("Board name 2", memberId, memberName, since);
+		
+		... and do something with the Query's result (topicsSince)
 	}
 }
 ```
@@ -401,69 +496,68 @@ public class GraphQLClient {
 As there is no provided value for the _memberName_ bind parameter, this parameter is not sent to the server. It's correct as this parameter is optional in both the bind parameter definition in the query (it starts by a _?_ ) and the GraphQL schema.
 
 Please note that:
-* If a bind parameter is set for a GraphQL array/list, you'll have to provide a java.util.List<YourObject> instance, where YourObject is the type defined in the GraphQL schema.  
+* If a bind parameter is set for a GraphQL array, the expected type is a java.util.List<YourObject> instance, where YourObject is the type defined in the GraphQL schema (or null, if you don't provide a value for an optional parameter)
 * The _since_ parameter is a custom scalar of type _Date_ . In the pom.xml or the build.gradle file, the custom scalar is declared as being a _java.util.Date_ so the value in your code is a standard java.util.Date. The custom scalar implementation provided in the pom.xml or the build.gradle file takes care of properly format the code (when executing the request) and read the value (when reading the server response). More information on that in the [custom scalar plugin's doc page](https://graphql-maven-plugin-project.graphql-java-generator.com/customscalars.html).
 
 
 ## Full requests
 
-The above samples are all _Partial_ requests.
+The previous samples are all _Partial_ requests. This allows to directly get the result of the query in the response of the GraphQL repository method.
 
 The GraphQL Maven and Gradle plugin also manage _Full_ requests (only for query and mutation, not for subscription).
 
 A full request allows to:
-* Execute several queries into one call toward the server  
+* Execute several queries or mutations into one call toward the server  
 * Add directives to the query/mutation itself
-* Use GraphQL global fragments into your query (inline fragment are usable with partial requests as well)
+* Use GraphQL global fragments into your query (whereas only inline fragments may be used with partial requests)
 
-The main difference between _Partial_ and _Full_ requests, is that the method that executes a full request returns an instance of the Query or Mutation, as defined the query or mutation is defined in the GraphQL schema. This means:
+The main difference between _Partial_ and _Full_ requests, is that the method that executes a full request returns an instance of the Query or Mutation type, as defined the query or mutation is defined in the GraphQL schema. This means:
 * That you can have the response for several queries or mutations in one call
     * As alias are not managed yet, you can execute several different queries or several different mutations in a call. But you can not execute several times the same query or mutation in one call.
 * You need to call the relevant getter to retrieve the result for each query or mutation that you have executed
 
-Here is a sample:
+
+Here is a sample of GraphQL Repository method that defines a Full Request:
 
 ```Java
-public class GraphQLClient {
+@GraphQLRepository
+public interface MyGraphQLRepository {
 
-	/** The logger for this class */
-	static protected Logger logger = LoggerFactory.getLogger(GraphQLClient.class);
-
-	MutationExecutor mutationExecutor;
-	GraphQLRequest boardsFullRequest;
+	...   You can defined as many method as you wish in a GraphQL Repository
 
 	/**
-	 * This constructor prepares the GraphQL requests, so that they can be used by the {@link #execPartialRequests()}
-	 * method
+	 * A full Request returns the Query or the Mutation type, as it is defined in the GraphQL schema. You'll have then
+	 * to use the relevant getter(s) to retrieve the request's result
+	 * 
+	 * @return
 	 */
-	public GraphQLClient() throws GraphQLRequestPreparationException {
-
-		// Creation of the query executor, for this GraphQL endpoint
-		logger.info("Connecting to GraphQL endpoint");
-		mutationExecutor = new MutationExecutor("http://localhost:8180/graphql");
-
-		// Preparation of the GraphQL Full requests, that will be used in the execFullRequests() method
-		boardsFullRequest = mutationExecutor
-				.getGraphQLRequest("mutation {createPost(post: &postInput) { id date author{id name} title content}}");
-	}
-
-	public void execFullRequests() throws GraphQLRequestExecutionException {
-		// Let's create a dummy postInput parameter, with builders generated for each object by the plugin
-		TopicPostInput topicInput = new TopicPostInput.Builder().withAuthorId("00000000-0000-0000-0000-000000000001")
-				.withPubliclyAvailable(true).withDate(new GregorianCalendar(2019, 4 - 1, 30).getTime())
-				.withTitle("a title").withContent("Some content").build();
-		PostInput postInput = new PostInput.Builder().withFrom(new GregorianCalendar(2018, 3 - 1, 2).getTime())
-				.withInput(topicInput).withTopicId("00000000-0000-0000-0000-000000000002").build();
-
-		Mutation response = mutationExecutor.exec(boardsFullRequest, "postInput", postInput);
-		Post createdPost = response.getCreatePost();
-
-		... Do something with createdPost
-	}
+	@FullRequest(request = "fragment topicFields on Topic {id title date} "
+			+ "query{boards{id name publiclyAvailable topics {...topicFields nbPosts}}}")
+	public Query fullQueryWithFragment() throws GraphQLRequestExecutionException;
 }
 ```
 
-In this sample, there is one bind parameter, which is the mutation parameter. You can note that it's a GraphQL input type.
+Then, the using Spring component can call this method like this:
+
+```Java
+@Component // This annotation marks this class as a Spring bean (prerequisite to make @Autowire annotation work)
+public class Application implements CommandLineRunner {
+
+	@Autowired
+	private MyGraphQLRepository myGraphQLRepository;
+
+	@Override
+	public void run(String... args) throws GraphQLRequestExecutionException {
+		Query query = myGraphQLRepository.fullQueryWithFragment(); // Execution of the GraphQL Request
+		List<Board> boards = query.getBoards(); // Retrieval of the result
+
+		.. Do something 
+	}
+
+}
+```
+
+In this sample, there is a global fragment.
   
 
 
@@ -475,29 +569,114 @@ You can use fragments in your queries, mutations or subscriptions:
 * __Named fragments__ work only with Full request, as you declare these fragments at the root of the requests. So, named fragments work only with queries and mutations.
     * This limitation will be overcome in the future
 
-Below is a sample of a partial direct query with an inline fragment:
+Below is a sample of a GraphQL Repository with Fragments:
 
 ```Java
-	List<Board> boards = queryExecutor
-				.boards("{id name publiclyAvailable topics {... on Topic {id title date} nbPosts}}");
-	
-	... Do something with boards
+@GraphQLRepository
+public interface MyGraphQLRepository {
+
+	/**
+	 * A full Request returns the Query or the Mutation type, as it is defined in the GraphQL schema. You'll have then
+	 * to use the relevant getter(s) to retrieve the request's result
+	 * 
+	 * @return
+	 */
+	@FullRequest(request = "fragment topicFields on Topic {id title date} "
+			+ "query{boards{id name publiclyAvailable topics {...topicFields nbPosts}}}")
+	public Query fullQueryWithFragment() throws GraphQLRequestExecutionException;
+
+	/**
+	 * A query with inline fragments
+	 * 
+	 * @return
+	 * @throws GraphQLRequestExecutionException
+	 */
+	@PartialRequest(requestName = "boards", request = "{id name publiclyAvailable topics {... on Topic {id title date} nbPosts}}")
+	List<Board> boardsWithInlineFragment() throws GraphQLRequestExecutionException;
+}
 ```
 
-Below is another sample, with a full direct query with a named fragment:
 
-```Java
-import org.forum.client.Board;
-import org.forum.client.Query;
+## Mutations
 
-	Query response = queryExecutor.exec(
-			"fragment topicFields on Topic {id title date} " +
-			"query{boards{id name publiclyAvailable topics {...topicFields nbPosts}}}");
-	List<Board> boards = response.getBoards();
-	
-	... Do something with boards
+Mutations work the same way as Queries. 
+
+The only difference is the requestType parameter. Its value is `query` by default. So, for mutation, the `requestType` parameter is mandatory, in both the `@PartialRequest` and `@FullRequest` annotations.
+
+Here is a sample with the mutation, done with a Partial Request, then a Full Request:
+
+```java
+@GraphQLRepository
+public interface MyGraphQLRepository {
+
+	/**
+	 * A mutation sample, within a Partial Request
+	 * 
+	 * @param postInput
+	 *            The post to be created
+	 * 
+	 * @return The created Post
+	 */
+	@PartialRequest(request = "{ id date author{id name} title content}", //
+			requestType = RequestType.mutation /* default request type for Partial Query is query */)
+	Post createPost(PostInput postInput) throws GraphQLRequestExecutionException;
+
+	/**
+	 * A mutation sample, within a Full Request
+	 * 
+	 * @param postInput
+	 *            The post to be created
+	 * @return The {@link Mutation} type. Calling the {@link Mutation#getCreatePost()} allows to retrieve the return for
+	 *         the createPost mutation, that is: the created post
+	 */
+	@FullRequest(request = "mutation {createPost(post: &postInput) { id date author{id name} title content}}", //
+			requestType = RequestType.mutation /* default request type for Partial Query is query */)
+	Mutation createPostFullRequest(@BindParameter(name = "postInput") PostInput postInput)
+			throws GraphQLRequestExecutionException;
+}
 ```
 
+And the way to use it is:
+
+```java
+@Component // This annotation marks this class as a Spring bean (prerequisite to make @Autowire annotation work)
+public class Application implements CommandLineRunner {
+
+	/** The logger for this class */
+	static protected Logger logger = LoggerFactory.getLogger(Application.class);
+
+	@Autowired
+	private MyGraphQLRepository myGraphQLRepository;
+
+	@Override
+	public void run(String... args) throws GraphQLRequestExecutionException {
+
+		TopicPostInput topicInput = new TopicPostInput.Builder().withAuthorId("00000000-0000-0000-0000-000000000001")
+				.withPubliclyAvailable(true).withDate(new GregorianCalendar(2019, 4 - 1, 30).getTime())
+				.withTitle("a title").withContent("Some content").build();
+		PostInput postInput = new PostInput.Builder().withFrom(new GregorianCalendar(2018, 3 - 1, 2).getTime())
+				.withInput(topicInput).withTopicId("00000000-0000-0000-0000-000000000002").build();
+
+		logger.info("===========================================================================================");
+		logger.info("==================== Executing mutation in a Partial Request ==============================");
+		logger.info("===========================================================================================");
+		Post postFromPartialRequest = myGraphQLRepository.createPost(postInput);
+
+... Do something with the created post (postFromPartialRequest)
+
+
+		logger.info("===========================================================================================");
+		logger.info("==================== Executing mutation in a Full Request =================================");
+		logger.info("===========================================================================================");
+		Mutation mutation = myGraphQLRepository.createPostFullRequest(postInput);
+		Post postFromFullRequest = mutation.getCreatePost();
+
+... Do something with the created post (postFromFullRequest)
+
+	}
+
+}
+```
 
 ## To be continued... (Subscriptions)
 
