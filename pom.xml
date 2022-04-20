@@ -14,7 +14,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- The graphql plugin's version, used in this tutorial -->
-		<graphql-maven-plugin.version>1.18.2</graphql-maven-plugin.version>
+		<graphql-maven-plugin.version>1.18.6</graphql-maven-plugin.version>
 	</properties>
 
 
@@ -55,6 +55,7 @@
 					</customScalars>
 					<!-- The parameters below change the 1.x default behavior. They are set to respect the behavior of the future 2.x versions -->
 					<copyRuntimeSources>false</copyRuntimeSources>
+					<generateDeprecatedRequestResponse>false</generateDeprecatedRequestResponse>
 					<separateUtilityClasses>true</separateUtilityClasses>
 					<skipGenerationIfSchemaHasNotChanged>true</skipGenerationIfSchemaHasNotChanged>
 				</configuration>

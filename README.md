@@ -58,7 +58,7 @@ Let's first have a look at the Maven **pom.xml** file:
 ```XML
 
 	<properties>
-		<graphql-maven-plugin.version>1.18.2</graphql-maven-plugin.version>
+		<graphql-maven-plugin.version>1.18.6</graphql-maven-plugin.version>
 	</properties>
 	
 	<build>
@@ -87,6 +87,7 @@ Let's first have a look at the Maven **pom.xml** file:
 					<copyRuntimeSources>false</copyRuntimeSources>
 					<generateDeprecatedRequestResponse>false</generateDeprecatedRequestResponse>
 					<separateUtilityClasses>true</separateUtilityClasses>
+					<skipGenerationIfSchemaHasNotChanged>true</skipGenerationIfSchemaHasNotChanged>
 				</configuration>
 			</plugin>
 ...
@@ -103,38 +104,36 @@ Let's first have a look at the Maven **pom.xml** file:
 	</dependencies>
 ```
 
-Then the Gradle **build.properties** and **build.gradle** files:
 
 Define once the plugin version in the **build.properties** file:
 
 ```Groovy
-graphQLPluginVersion = 1.18.2
+graphQLPluginVersion = 1.18.6
 ```
 
-```Groovy
+Then use this version in the **build.gradle** file:
 
+```Groovy
 plugins {
 	id "com.graphql_java_generator.graphql-gradle-plugin" version "${graphQLPluginVersion}"
 	id 'java'
+	id "org.springframework.boot" version "2.4.4"
 }
 
 repositories {
-	jcenter()
+	mavenLocal()
 	mavenCentral()
 }
 
 dependencies {
 	// THE VERSION MUST BE THE SAME AS THE PLUGIN's ONE
-	implementation "com.graphql-java-generator:graphql-java-client-dependencies:${graphQLPluginVersion}"
+	implementation "com.graphql-java-generator:graphql-java-client-runtime:${graphQLPluginVersion}"
 }
-
-// The line below makes the GraphQL plugin be executed before Java compiles, so that all sources are generated on time
-compileJava.dependsOn generateClientCode
-processResources.dependsOn generateClientCode
 
 // The line below adds the generated sources as a java source folder in the IDE
 sourceSets.main.java.srcDirs += '/build/generated/sources/graphqlGradlePlugin'
 sourceSets.main.java.srcDirs += '/build/generated/resources/graphqlGradlePlugin'
+
 
 // Let's configure the GraphQL Gradle Plugin:
 // All available parameters are described here: 
@@ -147,7 +146,8 @@ generateClientCodeConf {
 			graphQLScalarTypeStaticField: "com.graphql_java_generator.customscalars.GraphQLScalarTypeDate.Date"
 	] ]
 
-	// The parameters below change the 1.x default behavior. They are set to respect the default behavior of the future 2.x versions 
+	// The parameters below change the 1.x default behavior. They are set to respect the default behavior of the future 2.x versions
+	copyRuntimeSources = false
 	generateDeprecatedRequestResponse = false
 	separateUtilityClasses = true
 }
