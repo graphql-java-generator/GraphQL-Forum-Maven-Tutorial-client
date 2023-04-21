@@ -1,5 +1,6 @@
 package org.graphql_forum_sample.client;
 
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -11,6 +12,7 @@ import org.forum.client.Post;
 import org.forum.client.PostInput;
 import org.forum.client.Topic;
 import org.forum.client.TopicPostInput;
+import org.graphql_forum_sample.client.subscription.SubscriptionRequests;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import com.graphql_java_generator.exception.GraphQLRequestExecutionException;
+import com.graphql_java_generator.exception.GraphQLRequestPreparationException;
 
 /**
  * This class contains the functional code that is executed. It uses the GraphQLXxx Spring beans for that. It is started
@@ -36,9 +39,12 @@ public class Application implements CommandLineRunner {
 
 	@Autowired
 	private MyGraphQLRepository myGraphQLRepository;
+	@Autowired
+	private SubscriptionRequests subscriptions;
 
 	@Override
-	public void run(String... args) throws GraphQLRequestExecutionException {
+	public void run(String... args) throws GraphQLRequestExecutionException, GraphQLRequestPreparationException,
+			IOException, InterruptedException {
 		logger.info("===========================================================================================");
 		logger.info("====================  Executing Partial Requests  =========================================");
 		logger.info("===========================================================================================");
@@ -90,6 +96,12 @@ public class Application implements CommandLineRunner {
 		Mutation mutation = myGraphQLRepository.createPostFullRequest(postInput);
 		Post postFromFullRequest = mutation.getCreatePost();
 		logger.info("Post created: {}", postFromFullRequest);
+
+		System.out.println("");
+		System.out.println("============================================================================");
+		System.out.println("======= LET'S EXECUTE A SUBSCRIPTION      ==================================");
+		System.out.println("============================================================================");
+		subscriptions.execSubscription();
 
 		logger.info("Normal end of execution");
 	}
