@@ -12,6 +12,8 @@ import org.forum.client.TopicPostInput;
 import org.forum.client.util.GraphQLRequest;
 import org.forum.client.util.MutationExecutor;
 import org.forum.client.util.SubscriptionExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +24,9 @@ import com.graphql_java_generator.exception.GraphQLRequestPreparationException;
 @Component
 public class SubscriptionRequests {
 
+	/** The logger for this class */
+	static protected Logger logger = LoggerFactory.getLogger(SubscriptionRequests.class);
+
 	@Autowired
 	MutationExecutor mutationTypeExecutor;
 
@@ -31,9 +36,9 @@ public class SubscriptionRequests {
 	public void execSubscription() throws GraphQLRequestPreparationException, GraphQLRequestExecutionException,
 			IOException, InterruptedException {
 		// Preparation
-		GraphQLRequest subscriptionRequest = subscriptionTypeExecutor
+		GraphQLRequest subscriptionRequest = this.subscriptionTypeExecutor
 				.getSubscribeToNewPostGraphQLRequest("{id date publiclyAvailable title content author{id name}}");
-		GraphQLRequest createPostRequest = mutationTypeExecutor
+		GraphQLRequest createPostRequest = this.mutationTypeExecutor
 				.getCreatePostGraphQLRequest("{id date author{id} title content publiclyAvailable}");
 
 		PostSubscriptionCallback postSubscriptionCallback = new PostSubscriptionCallback();
@@ -47,8 +52,8 @@ public class SubscriptionRequests {
 		////////////////////////////////////////////////////////////////////////////////////////////////////
 		// Actual submission of the subscription.
 		// The notifications are received by postSubscriptionCallback.onMessage() method
-		System.out.println("Submitting the 'subscribeToNewPostWithBindValues' GraphQL subscription");
-		SubscriptionClient subscriptionClient = subscriptionTypeExecutor.subscribeToNewPost(subscriptionRequest,
+		logger.info("Submitting the 'subscribeToNewPostWithBindValues' GraphQL subscription");
+		SubscriptionClient subscriptionClient = this.subscriptionTypeExecutor.subscribeToNewPost(subscriptionRequest,
 				postSubscriptionCallback, "Board name 1");
 		////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -56,9 +61,9 @@ public class SubscriptionRequests {
 		// the subscription is active when the post is created, so that we receive the notification for its creation)
 		Thread.sleep(1000);
 
-		System.out.println(
+		logger.info(
 				"Creating a post (for which we expect a notification) from this postInput: " + postInput.toString());
-		mutationTypeExecutor.createPost(createPostRequest, postInput);
+		this.mutationTypeExecutor.createPost(createPostRequest, postInput);
 
 		// Let's wait until we receive the notification
 		postSubscriptionCallback.latchNewMessage.await(5, TimeUnit.SECONDS);

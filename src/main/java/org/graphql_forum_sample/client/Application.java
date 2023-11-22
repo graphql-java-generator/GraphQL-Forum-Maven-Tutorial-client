@@ -48,13 +48,13 @@ public class Application implements CommandLineRunner {
 		logger.info("===========================================================================================");
 		logger.info("====================  Executing Partial Requests  =========================================");
 		logger.info("===========================================================================================");
-		List<Board> boards = myGraphQLRepository.boards();
+		List<Board> boards = this.myGraphQLRepository.boards();
 		logger.info("Boards read: {}", boards);
 
 		logger.info("===========================================================================================");
 		logger.info("====================  Executing Partial Requests, with parameters  ========================");
 		logger.info("===========================================================================================");
-		List<Topic> topics = myGraphQLRepository.topics("Board name 2");
+		List<Topic> topics = this.myGraphQLRepository.topics("Board name 2");
 		logger.info("Topics read: {}", topics);
 
 		logger.info("===========================================================================================");
@@ -63,19 +63,19 @@ public class Application implements CommandLineRunner {
 		String memberId = null; // may be null, as it's optional
 		String memberName = null; // may be null, as it's optional
 		Date since = new Calendar.Builder().setDate(2022, 02 - 1 /* february */, 01).build().getTime();
-		List<Topic> topicsSince = myGraphQLRepository.topicsSince("Board name 2", memberId, memberName, since);
+		List<Topic> topicsSince = this.myGraphQLRepository.topicsSince("Board name 2", memberId, memberName, since);
 		logger.info("Topics read: {}", topicsSince);
 
 		logger.info("===========================================================================================");
 		logger.info("==================== Executing direct full request, with a fragment =====================");
 		logger.info("===========================================================================================");
-		boards = myGraphQLRepository.fullQueryWithFragment().getBoards();
+		boards = this.myGraphQLRepository.fullQueryWithFragment().getBoards();
 		logger.info("Boards read: {}", boards);
 
 		logger.info("===========================================================================================");
 		logger.info("====================  Executing Partial Requests, with inline Fragment ====================");
 		logger.info("===========================================================================================");
-		List<Board> boardsWithInlineFragment = myGraphQLRepository.boardsWithInlineFragment();
+		List<Board> boardsWithInlineFragment = this.myGraphQLRepository.boardsWithInlineFragment();
 		logger.info("Boards read: {}", boardsWithInlineFragment);
 
 		TopicPostInput topicInput = new TopicPostInput.Builder().withAuthorId("00000000-0000-0000-0000-000000000001")
@@ -87,22 +87,24 @@ public class Application implements CommandLineRunner {
 		logger.info("===========================================================================================");
 		logger.info("==================== Executing mutation in a Partial Request ==============================");
 		logger.info("===========================================================================================");
-		Post postFromPartialRequest = myGraphQLRepository.createPost(postInput);
+		Post postFromPartialRequest = this.myGraphQLRepository.createPost(postInput);
 		logger.info("Post created: {}", postFromPartialRequest);
 
 		logger.info("===========================================================================================");
 		logger.info("==================== Executing mutation in a Full Request =================================");
 		logger.info("===========================================================================================");
-		Mutation mutation = myGraphQLRepository.createPostFullRequest(postInput);
+		Mutation mutation = this.myGraphQLRepository.createPostFullRequest(postInput);
 		Post postFromFullRequest = mutation.getCreatePost();
 		logger.info("Post created: {}", postFromFullRequest);
 
-		System.out.println("");
-		System.out.println("============================================================================");
-		System.out.println("======= LET'S EXECUTE A SUBSCRIPTION      ==================================");
-		System.out.println("============================================================================");
-		subscriptions.execSubscription();
+		logger.info("");
+		logger.info("============================================================================");
+		logger.info("======= LET'S EXECUTE A SUBSCRIPTION      ==================================");
+		logger.info("============================================================================");
+		this.subscriptions.execSubscription();
 
+		logger.info("");
+		logger.info("============================================================================");
 		logger.info("Normal end of execution");
 	}
 
