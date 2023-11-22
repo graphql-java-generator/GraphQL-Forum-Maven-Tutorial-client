@@ -20,7 +20,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- The graphql plugin's version, used in this tutorial -->
-		<graphql-maven-plugin.version>2.0</graphql-maven-plugin.version>
+		<graphql-maven-plugin.version>2.3.1</graphql-maven-plugin.version>
 	</properties>
 
 
