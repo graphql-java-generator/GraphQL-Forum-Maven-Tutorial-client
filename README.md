@@ -58,7 +58,7 @@ Let's first have a look at the Maven **pom.xml** file:
 ```XML
 
 	<properties>
-		<graphql-maven-plugin.version>1.18.6</graphql-maven-plugin.version>
+		<graphql-maven-plugin.version>2.4</graphql-maven-plugin.version>
 	</properties>
 	
 	<build>
@@ -108,7 +108,7 @@ Let's first have a look at the Maven **pom.xml** file:
 Define once the plugin version in the **build.properties** file:
 
 ```Groovy
-graphQLPluginVersion = 1.18.6
+graphQLPluginVersion = 2.4
 ```
 
 Then use this version in the **build.gradle** file:
@@ -132,7 +132,7 @@ dependencies {
 
 // The line below adds the generated sources as a java source folder in the IDE
 sourceSets.main.java.srcDirs += '/build/generated/sources/graphqlGradlePlugin'
-sourceSets.main.java.srcDirs += '/build/generated/resources/graphqlGradlePlugin'
+sourceSets.main.resources.srcDirs += '/build/generated/resources/graphqlGradlePlugin'
 
 
 // Let's configure the GraphQL Gradle Plugin:
@@ -259,7 +259,7 @@ When you create GraphQL Repositories in Spring app, you must declare to the Spri
 This is done through the use of the `@EnableGraphQLRepositories` annotation, on a Spring configuration class. For instance, in a Spring Boot application, it can be added to the main class, like this:
 
 ```java
-@SpringBootApplication(scanBasePackageClasses = { Main.class, GraphQLConfiguration.class, QueryExecutor.class })
+@SpringBootApplication(scanBasePackageClasses = { Main.class, GraphqlClientUtils.class, QueryExecutor.class })
 @EnableGraphQLRepositories({ "org.graphql_forum_sample.client" })
 public class Main {
 
@@ -678,6 +678,6 @@ public class Application implements CommandLineRunner {
 }
 ```
 
-## To be continued... (Subscriptions)
+## Subscriptions
 
 Subscription are documented on the [GraphQL plugin's web site](https://graphql-maven-plugin-project.graphql-java-generator.com/client_subscription.html) 
