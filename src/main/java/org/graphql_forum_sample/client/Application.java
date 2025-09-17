@@ -78,11 +78,16 @@ public class Application implements CommandLineRunner {
 		List<Board> boardsWithInlineFragment = this.myGraphQLRepository.boardsWithInlineFragment();
 		logger.info("Boards read: {}", boardsWithInlineFragment);
 
-		TopicPostInput topicInput = new TopicPostInput.Builder().withAuthorId("00000000-0000-0000-0000-000000000001")
-				.withPubliclyAvailable(true).withDate(new GregorianCalendar(2019, 4 - 1, 30).getTime())
-				.withTitle("a title").withContent("Some content").build();
-		PostInput postInput = new PostInput.Builder().withFrom(new GregorianCalendar(2018, 3 - 1, 2).getTime())
-				.withInput(topicInput).withTopicId("00000000-0000-0000-0000-000000000002").build();
+		PostInput postInput = PostInput.builder()//
+				.withFrom(new GregorianCalendar(2018, 3 - 1, 2).getTime())//
+				.withInput(TopicPostInput.builder()//
+						.withAuthorId("00000000-0000-0000-0000-000000000001")//
+						.withPubliclyAvailable(true)//
+						.withDate(new GregorianCalendar(2019, 4 - 1, 30).getTime()).withTitle("a title")//
+						.withContent("Some content")//
+						.build())//
+				.withTopicId("00000000-0000-0000-0000-000000000002")//
+				.build();
 
 		logger.info("===========================================================================================");
 		logger.info("==================== Executing mutation in a Partial Request ==============================");

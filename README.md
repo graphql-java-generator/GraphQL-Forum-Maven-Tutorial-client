@@ -1,5 +1,6 @@
 # A tutorial for the GraphQL Maven plugin (client side)
 
+<!-- Add reactive samples -->
 
 This Tutorial describes how-to create a GraphQL client application, with the [graphql-maven-plugin](https://github.com/graphql-java-generator/graphql-maven-plugin-project) and the [graphql Gradle plugin](https://github.com/graphql-java-generator/graphql-gradle-plugin-project).
 
@@ -58,7 +59,7 @@ Let's first have a look at the Maven **pom.xml** file:
 ```XML
 
 	<properties>
-		<graphql-maven-plugin.version>2.4</graphql-maven-plugin.version>
+		<graphql-maven-plugin.version>3.0.1</graphql-maven-plugin.version>
 	</properties>
 	
 	<build>
@@ -108,16 +109,17 @@ Let's first have a look at the Maven **pom.xml** file:
 Define once the plugin version in the **build.properties** file:
 
 ```Groovy
-graphQLPluginVersion = 2.4
+graphQLPluginVersion = 3.0.1
+...
 ```
 
 Then use this version in the **build.gradle** file:
 
 ```Groovy
 plugins {
-	id "com.graphql_java_generator.graphql-gradle-plugin" version "${graphQLPluginVersion}"
+	id "com.graphql_java_generator.graphql-gradle-plugin3" version "${graphQLPluginVersion}"
 	id 'java'
-	id "org.springframework.boot" version "2.4.4"
+	id "org.springframework.boot" version "${springBootVersion}"
 }
 
 repositories {
@@ -651,11 +653,16 @@ public class Application implements CommandLineRunner {
 	@Override
 	public void run(String... args) throws GraphQLRequestExecutionException {
 
-		TopicPostInput topicInput = new TopicPostInput.Builder().withAuthorId("00000000-0000-0000-0000-000000000001")
-				.withPubliclyAvailable(true).withDate(new GregorianCalendar(2019, 4 - 1, 30).getTime())
-				.withTitle("a title").withContent("Some content").build();
-		PostInput postInput = new PostInput.Builder().withFrom(new GregorianCalendar(2018, 3 - 1, 2).getTime())
-				.withInput(topicInput).withTopicId("00000000-0000-0000-0000-000000000002").build();
+		PostInput postInput = PostInput.builder()//
+				.withFrom(new GregorianCalendar(2018, 3 - 1, 2).getTime())//
+				.withInput(TopicPostInput.builder()//
+						.withAuthorId("00000000-0000-0000-0000-000000000001")//
+						.withPubliclyAvailable(true)//
+						.withDate(new GregorianCalendar(2019, 4 - 1, 30).getTime()).withTitle("a title")//
+						.withContent("Some content")//
+						.build())//
+				.withTopicId("00000000-0000-0000-0000-000000000002")//
+				.build();
 
 		logger.info("===========================================================================================");
 		logger.info("==================== Executing mutation in a Partial Request ==============================");

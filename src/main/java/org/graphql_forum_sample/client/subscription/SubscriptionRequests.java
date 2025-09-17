@@ -33,6 +33,8 @@ public class SubscriptionRequests {
 	@Autowired
 	SubscriptionExecutor subscriptionTypeExecutor;
 
+	SubscriptionClient subscriptionClient = null;
+
 	public void execSubscription() throws GraphQLRequestPreparationException, GraphQLRequestExecutionException,
 			IOException, InterruptedException {
 		// Preparation
@@ -52,9 +54,22 @@ public class SubscriptionRequests {
 		////////////////////////////////////////////////////////////////////////////////////////////////////
 		// Actual submission of the subscription.
 		// The notifications are received by postSubscriptionCallback.onMessage() method
-		logger.info("Submitting the 'subscribeToNewPostWithBindValues' GraphQL subscription");
-		SubscriptionClient subscriptionClient = this.subscriptionTypeExecutor.subscribeToNewPost(subscriptionRequest,
-				postSubscriptionCallback, "Board name 1");
+		//
+		// For this test, we need to wait for the subscription to be active. So we subscribe to it on another thread, to
+		// let the subscription run in parallel of our waiting thread
+		new Thread() {
+			@Override
+			public void run() {
+				try {
+					logger.info("Submitting the 'subscribeToNewPostWithBindValues' GraphQL subscription");
+					SubscriptionRequests.this.subscriptionClient = SubscriptionRequests.this.subscriptionTypeExecutor
+							.subscribeToNewPost(subscriptionRequest, postSubscriptionCallback, "Board name 1");
+				} catch (GraphQLRequestExecutionException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}.start();
+
 		////////////////////////////////////////////////////////////////////////////////////////////////////
 
 		// For this test, we need to be sure that the subscription is active, before creating the post (to be sure that
@@ -72,7 +87,7 @@ public class SubscriptionRequests {
 		}
 
 		// We need to free the server resources, at the end
-		subscriptionClient.unsubscribe();
+		this.subscriptionClient.unsubscribe();
 	}
 
 	private TopicPostInput getTopicPostInput(Member author, String content, Date date, boolean publiclyAvailable,

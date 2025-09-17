@@ -6,6 +6,9 @@ package org.graphql_forum_sample.client.subscription;
 import java.util.concurrent.CountDownLatch;
 
 import org.forum.client.Post;
+import org.graphql_forum_sample.client.Application;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.graphql_java_generator.client.SubscriptionCallback;
 
@@ -15,6 +18,9 @@ import com.graphql_java_generator.client.SubscriptionCallback;
 // The class that'll receive the notification from the GraphQL subscription
 
 public class PostSubscriptionCallback implements SubscriptionCallback<Post> {
+
+	/** The logger for this class */
+	static protected Logger logger = LoggerFactory.getLogger(Application.class);
 
 	/** Indicates whether the Web Socket is connected or not */
 	public boolean connected = false;
@@ -33,27 +39,26 @@ public class PostSubscriptionCallback implements SubscriptionCallback<Post> {
 
 	@Override
 	public void onMessage(Post t) {
-		System.out.println(
-				"Received a notification from the 'subscribeToNewPostWithBindValues' subscription, for this post  "
-						+ t);
-		nbReceivedMessages += 1;
-		lastReceivedMessage = t;
-		latchNewMessage.countDown();
+		logger.info("Received a notification from the 'subscribeToNewPostWithBindValues' subscription, for this post  "
+				+ t);
+		this.nbReceivedMessages += 1;
+		this.lastReceivedMessage = t;
+		this.latchNewMessage.countDown();
 		// Do something useful with it
 	}
 
 	@Override
 	public void onClose(int statusCode, String reason) {
-		connected = false;
-		lastReceivedClose = statusCode + "-" + reason;
-		System.out.println("Received onClose: " + lastReceivedClose);
+		this.connected = false;
+		this.lastReceivedClose = statusCode + "-" + reason;
+		logger.info("Received onClose: " + this.lastReceivedClose);
 	}
 
 	@Override
 	public void onError(Throwable cause) {
-		connected = false;
-		lastReceivedError = cause;
-		System.out.println("Received onError: " + cause);
+		this.connected = false;
+		this.lastReceivedError = cause;
+		logger.error("Received onError: " + cause);
 	}
 
 }
