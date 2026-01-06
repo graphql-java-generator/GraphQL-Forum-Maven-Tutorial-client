@@ -20,7 +20,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- The graphql plugin's version, used in this tutorial -->
-		<graphql-maven-plugin.version>3.0.1</graphql-maven-plugin.version>
+		<graphql-maven-plugin.version>3.1</graphql-maven-plugin.version>
 	</properties>
 
 
@@ -31,8 +31,8 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>17</source>
-					<target>17</target>
+					<source>25</source>
+					<target>25</target>
 				</configuration>
 			</plugin>
 			<plugin>
