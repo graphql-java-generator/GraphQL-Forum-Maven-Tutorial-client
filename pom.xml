@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.4</version>
+		<version>4.0.1</version>
 		<relativePath />
 	</parent>
 
@@ -20,7 +20,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- The graphql plugin's version, used in this tutorial -->
-		<graphql-maven-plugin.version>3.1</graphql-maven-plugin.version>
+		<graphql-maven-plugin.version>4.0</graphql-maven-plugin.version>
 	</properties>
 
 
