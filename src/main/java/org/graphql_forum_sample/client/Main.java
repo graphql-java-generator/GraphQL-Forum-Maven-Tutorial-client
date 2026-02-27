@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.graphql_forum_sample.client;
 
 import org.forum.client.util.QueryExecutor;

@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -14,13 +17,15 @@
 	<artifactId>GraphQL-Forum-Maven-Tutorial-client</artifactId>
 	<version>local-SNAPSHOT</version>
 
-	<url>https://github.com/graphql-java-generator/GraphQL-Forum-Maven-Sample-client</url>
+	<url>
+		https://github.com/graphql-java-generator/GraphQL-Forum-Maven-Sample-client</url>
 
 	<properties>
+		<project.java.version>25</project.java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- The graphql plugin's version, used in this tutorial -->
-		<graphql-maven-plugin.version>4.0</graphql-maven-plugin.version>
+		<graphql-maven-plugin.version>4.0.2</graphql-maven-plugin.version>
 	</properties>
 
 
@@ -31,8 +36,15 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>25</source>
-					<target>25</target>
+					<source>${project.java.version}</source>
+					<target>${project.java.version}</target>
+					<release>${project.java.version}</release>
+					<compilerArgs>
+						<!-- This insures that no warning is propagated to the
+						generated code, when using copyRuntimeSources=true -->
+						<arg>-Xlint:all</arg>
+						<arg>-Werror</arg>
+					</compilerArgs>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -49,19 +61,22 @@
 				<configuration>
 					<!-- Let's configure the GraphQL Gradle Plugin: -->
 					<!-- All available parameters are described here: -->
-					<!-- https://graphql-maven-plugin-project.graphql-java-generator.com/graphql-maven-plugin/generateClientCode-mojo.html -->
+					<!--
+					https://graphql-maven-plugin-project.graphql-java-generator.com/graphql-maven-plugin/generateClientCode-mojo.html -->
 					<packageName>org.forum.client</packageName>
 					<customScalars>
 						<customScalar>
 							<graphQLTypeName>Date</graphQLTypeName>
 							<javaType>java.util.Date</javaType>
-							<graphQLScalarTypeStaticField>com.graphql_java_generator.customscalars.GraphQLScalarTypeDate.Date</graphQLScalarTypeStaticField>
+							<graphQLScalarTypeStaticField>
+								com.graphql_java_generator.customscalars.GraphQLScalarTypeDate.Date</graphQLScalarTypeStaticField>
 						</customScalar>
 					</customScalars>
 				</configuration>
 			</plugin>
 			<plugin>
-				<!-- Needed to properly package the jar or war, so that spring can link all resources together -->
+				<!-- Needed to properly package the jar or war, so that spring
+				can link all resources together -->
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<executions>
